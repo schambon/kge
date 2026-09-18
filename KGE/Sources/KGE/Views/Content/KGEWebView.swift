@@ -37,6 +37,7 @@ struct KGEWebViewRepresentable: NSViewRepresentable {
     func makeNSView(context: Context) -> KGEWebView {
         let webView = KGEWebView()
         webView.navigationDelegate = context.coordinator
+        webView.uiDelegate = context.coordinator
         webView.keyHandler = context.coordinator
         context.coordinator.webView = webView
         onWebViewCreated(webView)
@@ -58,7 +59,7 @@ struct KGEWebViewRepresentable: NSViewRepresentable {
     }
 
     @MainActor
-    final class Coordinator: NSObject, WKNavigationDelegate, WebKeyHandling {
+    final class Coordinator: NSObject, WKNavigationDelegate, WKUIDelegate, WebKeyHandling {
         weak var webView: WKWebView?
         var onOpenNode: (URL) -> Void = { _ in }
         var onOpenBacklinks: () -> Void = {}
@@ -68,30 +69,58 @@ struct KGEWebViewRepresentable: NSViewRepresentable {
         func webView(
             _ webView: WKWebView,
             decidePolicyFor navigationAction: WKNavigationAction,
-            decisionHandler: @escaping (WKNavigationActionPolicy) -> Void
+            decisionHandler: @escaping @MainActor (WKNavigationActionPolicy) -> Void
         ) {
             guard let url = navigationAction.request.url else {
                 decisionHandler(.allow)
                 return
             }
 
-            if url.scheme == "kge", url.host == "open" {
+            if handleAppLevelNavigation(to: url, navigationType: navigationAction.navigationType) {
                 decisionHandler(.cancel)
-                if let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
-                   let path = components.queryItems?.first(where: { $0.name == "path" })?.value {
-                    onOpenNode(URL(fileURLWithPath: path))
-                }
-                return
-            }
-
-            if navigationAction.navigationType == .linkActivated,
-               let scheme = url.scheme, scheme == "http" || scheme == "https" {
-                decisionHandler(.cancel)
-                NSWorkspace.shared.open(url)
                 return
             }
 
             decisionHandler(.allow)
+        }
+
+        /// Handles a modified click (Cmd-click, middle-click, "Open Link in New Window")
+        /// on an in-page link. WebKit routes these through `window.open()`-style handling
+        /// rather than `decidePolicyFor`, so without a `WKUIDelegate` it falls back to
+        /// asking the system to open the URL directly — fatal for the `kge://` scheme,
+        /// which has no registered app handler. Intercept the same way and never actually
+        /// create a new web view.
+        func webView(
+            _ webView: WKWebView,
+            createWebViewWith configuration: WKWebViewConfiguration,
+            for navigationAction: WKNavigationAction,
+            windowFeatures: WKWindowFeatures
+        ) -> WKWebView? {
+            if let url = navigationAction.request.url {
+                _ = handleAppLevelNavigation(to: url, navigationType: navigationAction.navigationType)
+            }
+            return nil
+        }
+
+        /// Shared interception for `kge://open` node links and external `http(s)` links,
+        /// used by both the normal navigation path and the new-window path. Returns
+        /// `true` if the navigation was handled in-app and should not proceed as-is.
+        private func handleAppLevelNavigation(to url: URL, navigationType: WKNavigationType) -> Bool {
+            if url.scheme == "kge", url.host == "open" {
+                if let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
+                   let path = components.queryItems?.first(where: { $0.name == "path" })?.value {
+                    onOpenNode(URL(fileURLWithPath: path))
+                }
+                return true
+            }
+
+            if navigationType == .linkActivated,
+               let scheme = url.scheme, scheme == "http" || scheme == "https" {
+                NSWorkspace.shared.open(url)
+                return true
+            }
+
+            return false
         }
 
         /// Handles `j`/`k`/`b`/`l`/Enter — the shortcuts that only make sense when the

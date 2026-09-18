@@ -33,6 +33,7 @@ targets:
       path: Sources/KGE/Resources/KGE.entitlements
       properties:
         com.apple.security.app-sandbox: true
+        com.apple.security.network.client: true
         com.apple.security.files.user-selected.read-write: true
         com.apple.security.files.bookmarks.app-scope: true
     settings:
@@ -42,6 +43,7 @@ targets:
         SWIFT_VERSION: "6.0"
         ENABLE_PREVIEWS: true
         CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: 4SQC3869MD
         GENERATE_INFOPLIST_FILE: false
   KGETests:
     type: bundle.unit-test

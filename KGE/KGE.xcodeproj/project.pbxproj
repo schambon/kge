@@ -359,6 +359,7 @@
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
 					5A94DC80AE5607F20C9B1211 = {
+						DevelopmentTeam = 4SQC3869MD;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -463,6 +464,7 @@
 				CODE_SIGN_ENTITLEMENTS = Sources/KGE/Resources/KGE.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = 4SQC3869MD;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Sources/KGE/Resources/Info.plist;
@@ -641,6 +643,7 @@
 				CODE_SIGN_ENTITLEMENTS = Sources/KGE/Resources/KGE.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = 4SQC3869MD;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Sources/KGE/Resources/Info.plist;
