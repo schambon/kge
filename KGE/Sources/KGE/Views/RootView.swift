@@ -37,6 +37,7 @@ struct RootView: View {
     @State private var linksPopover: LinksPopoverKind?
     @State private var history = NavigationHistory()
     @State private var isNavigatingHistory = false
+    @State private var swipeOffset: CGFloat = 0
     @State private var isQuickOpenPresented = false
 
     @State private var isDynamicViewBuilderPresented = false
@@ -68,6 +69,7 @@ struct RootView: View {
                     onWebViewCreated: { webView in findController.webView = webView }
                 )
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .offset(x: swipeOffset)
 
                 if findController.isVisible {
                     FindBarView(
@@ -159,6 +161,14 @@ struct RootView: View {
             keyEventMonitor.register("d") { openDynamicViewBuilder() }
             keyEventMonitor.onSwipeBack = { goBack() }
             keyEventMonitor.onSwipeForward = { goForward() }
+            keyEventMonitor.onSwipeProgress = { dx in
+                if dx == 0 {
+                    withAnimation(.easeOut(duration: 0.2)) { swipeOffset = 0 }
+                } else {
+                    // Rubber-band: the canvas follows the fingers at half speed, capped.
+                    swipeOffset = max(-160, min(160, dx * 0.5))
+                }
+            }
             keyEventMonitor.start()
         }
         .onDisappear {

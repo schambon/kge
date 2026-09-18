@@ -54,25 +54,41 @@ final class KeyEventMonitor {
         monitor = nil
     }
 
+    /// Horizontal distance (points of finger travel) past which releasing commits the swipe.
+    private static let swipeCommitDistance: CGFloat = 220
+
+    /// Reports the live horizontal drag (positive = fingers moved right) so the UI can slide
+    /// the canvas; called with 0 when the gesture ends or is abandoned.
+    var onSwipeProgress: ((CGFloat) -> Void)?
+
     private var swipeDX: CGFloat = 0
     private var swipeDY: CGFloat = 0
-    private var swipeFired = false
+    private var swipeLocked = false
 
-    /// Accumulates one trackpad gesture's deltas and fires back/forward once when it is
-    /// clearly horizontal and long enough. Never consumes the event.
+    /// Safari-style: a horizontal gesture first drags the canvas, and only navigates if it
+    /// is carried far enough before the fingers lift. Never consumes the event.
     private func trackSwipe(_ event: NSEvent) {
-        guard event.hasPreciseScrollingDeltas, event.momentumPhase == [] else { return }
+        guard event.hasPreciseScrollingDeltas else { return }
+        if event.momentumPhase != [] { return }
         if event.phase.contains(.began) || event.phase.contains(.mayBegin) {
-            swipeDX = 0; swipeDY = 0; swipeFired = false
+            swipeDX = 0; swipeDY = 0; swipeLocked = false
         }
-        guard !swipeFired else { return }
+        if event.phase.contains(.ended) || event.phase.contains(.cancelled) {
+            let dx = swipeDX
+            let wasLocked = swipeLocked
+            swipeDX = 0; swipeDY = 0; swipeLocked = false
+            onSwipeProgress?(0)
+            if wasLocked, abs(dx) > Self.swipeCommitDistance {
+                if dx > 0 { onSwipeBack?() } else { onSwipeForward?() }
+            }
+            return
+        }
         // Normalise so positive = fingers moved right, regardless of natural-scrolling setting.
         let sign: CGFloat = event.isDirectionInvertedFromDevice ? 1 : -1
         swipeDX += event.scrollingDeltaX * sign
         swipeDY += abs(event.scrollingDeltaY)
-        guard abs(swipeDX) > 120, abs(swipeDX) > 2 * swipeDY else { return }
-        swipeFired = true
-        if swipeDX > 0 { onSwipeBack?() } else { onSwipeForward?() }
+        if !swipeLocked, abs(swipeDX) > 24, abs(swipeDX) > 2 * swipeDY { swipeLocked = true }
+        if swipeLocked { onSwipeProgress?(swipeDX) }
     }
 
     /// Returns `true` if the event was consumed.
