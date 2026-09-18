@@ -79,6 +79,14 @@ struct RootView: View {
                 }
             }
             .toolbar {
+                ToolbarItemGroup(placement: .navigation) {
+                    Button { goBack() } label: { Label("Back", systemImage: "chevron.left") }
+                        .disabled(!history.canGoBack)
+                        .help("Back (⌘←)")
+                    Button { goForward() } label: { Label("Forward", systemImage: "chevron.right") }
+                        .disabled(!history.canGoForward)
+                        .help("Forward (⌘→)")
+                }
                 ToolbarItem {
                     Button("Open Folder…") {
                         openFolder()
