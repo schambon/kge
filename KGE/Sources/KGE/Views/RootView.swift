@@ -5,7 +5,7 @@ import SwiftUI
 /// matches — this is what drives the title bar's save/trash icon toggle).
 private enum ContentKind: Equatable {
     case node(URL)
-    case dynamicView(savedID: UUID?, typeCanonical: String, folderRelativePath: String)
+    case dynamicView(savedID: UUID?, criteria: [ViewCriterion], folderRelativePath: String)
 }
 
 /// Top-level split view: sidebar (file tree / dynamic views) + content pane (rendered node).
@@ -40,7 +40,7 @@ struct RootView: View {
     @State private var isQuickOpenPresented = false
 
     @State private var isDynamicViewBuilderPresented = false
-    @State private var builderType = ""
+    @State private var builderCriteria: [ViewCriterion] = []
     @State private var builderFolder = ""
     @State private var isSaveNamePromptPresented = false
     @State private var saveNameDraft = ""
@@ -115,7 +115,7 @@ struct RootView: View {
                 history.push(newValue)
             }
         }
-        .onChange(of: builderType) { _, _ in renderTransientDynamicViewIfNeeded() }
+        .onChange(of: builderCriteria) { _, _ in renderTransientDynamicViewIfNeeded() }
         .onChange(of: builderFolder) { _, _ in renderTransientDynamicViewIfNeeded() }
         .onReceive(NotificationCenter.default.publisher(for: .kgeOpenFolderRequested)) { _ in
             openFolder()
@@ -181,7 +181,7 @@ struct RootView: View {
             DynamicViewBuilderView(
                 availableTypes: availableTypes,
                 availableFolders: availableFolders,
-                typeCanonical: $builderType,
+                criteria: $builderCriteria,
                 folderRelativePath: $builderFolder,
                 onClose: { isDynamicViewBuilderPresented = false }
             )
@@ -309,8 +309,8 @@ struct RootView: View {
 
     private func openDynamicViewBuilder() {
         guard projectController.projectRoot != nil else { return }
-        if builderType.isEmpty {
-            builderType = availableTypes.first ?? ""
+        if builderCriteria.isEmpty {
+            builderCriteria = [ViewCriterion(key: "type", value: availableTypes.first ?? "")]
         }
         if case .node(let url) = contentKind, let root = projectController.projectRoot {
             builderFolder = relativeFolder(of: url, root: root)
@@ -330,27 +330,27 @@ struct RootView: View {
     /// Renders the builder's current selection immediately, with no separate "apply"
     /// step — every change to type or folder re-renders live.
     private func renderTransientDynamicViewIfNeeded() {
-        guard !builderType.isEmpty, projectController.projectRoot != nil else { return }
+        guard projectController.projectRoot != nil else { return }
         currentURL = nil
-        contentKind = .dynamicView(savedID: nil, typeCanonical: builderType, folderRelativePath: builderFolder)
+        contentKind = .dynamicView(savedID: nil, criteria: builderCriteria, folderRelativePath: builderFolder)
         renderCurrentDynamicView()
     }
 
     private func openSavedDynamicView(_ view: DynamicView) {
         currentURL = nil
-        builderType = view.typeCanonical
+        builderCriteria = view.criteria
         builderFolder = view.folderRelativePath
-        contentKind = .dynamicView(savedID: view.id, typeCanonical: view.typeCanonical, folderRelativePath: view.folderRelativePath)
+        contentKind = .dynamicView(savedID: view.id, criteria: view.criteria, folderRelativePath: view.folderRelativePath)
         renderCurrentDynamicView()
     }
 
     private func renderCurrentDynamicView() {
-        guard case .dynamicView(let savedID, let type, let folder) = contentKind,
+        guard case .dynamicView(let savedID, let criteria, let folder) = contentKind,
               let root = projectController.projectRoot else { return }
         let name = savedID.flatMap { id in dynamicViewStore.views.first { $0.id == id }?.name } ?? "Dynamic View"
-        let nodes = DynamicView(name: name, typeCanonical: type, folderRelativePath: folder)
+        let nodes = DynamicView(name: name, folderRelativePath: folder, criteria: criteria)
             .matchingNodes(root: root, snapshot: projectController.snapshot)
-        currentHTML = DynamicViewRenderer.renderPage(name: name, typeCanonical: type, folderRelativePath: folder, nodes: nodes)
+        currentHTML = DynamicViewRenderer.renderPage(name: name, criteria: criteria, folderRelativePath: folder, nodes: nodes)
         currentBaseURL = nil
     }
 
@@ -360,20 +360,20 @@ struct RootView: View {
     }
 
     private func commitSaveDynamicView() {
-        guard case .dynamicView(_, let type, let folder) = contentKind, !saveNameDraft.isEmpty else { return }
-        let view = DynamicView(name: saveNameDraft, typeCanonical: type, folderRelativePath: folder)
+        guard case .dynamicView(_, let criteria, let folder) = contentKind, !saveNameDraft.isEmpty else { return }
+        let view = DynamicView(name: saveNameDraft, folderRelativePath: folder, criteria: criteria)
         dynamicViewStore.save(view)
-        contentKind = .dynamicView(savedID: view.id, typeCanonical: type, folderRelativePath: folder)
+        contentKind = .dynamicView(savedID: view.id, criteria: criteria, folderRelativePath: folder)
         isSaveNamePromptPresented = false
     }
 
     /// Cmd-S: save the current transient dynamic view, or delete it if it's already
     /// saved — the title-bar icon toggles between the two states.
     private func saveOrDeleteDynamicView() {
-        guard case .dynamicView(let savedID, let type, let folder) = contentKind else { return }
+        guard case .dynamicView(let savedID, let criteria, let folder) = contentKind else { return }
         if let savedID {
             dynamicViewStore.delete(id: savedID)
-            contentKind = .dynamicView(savedID: nil, typeCanonical: type, folderRelativePath: folder)
+            contentKind = .dynamicView(savedID: nil, criteria: criteria, folderRelativePath: folder)
         } else {
             beginSaveDynamicView()
         }

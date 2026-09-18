@@ -78,7 +78,7 @@ struct SampleVaultTests {
     @Test("a project-type dynamic view scoped to projects/ includes the nested archived node")
     func dynamicViewMatchesNestedSubtree() async {
         let (_, snapshot) = await buildIndex()
-        let view = DynamicView(name: "Projects", typeCanonical: "project", folderRelativePath: "projects")
+        let view = DynamicView(name: "Projects", folderRelativePath: "projects", criteria: [ViewCriterion(key: "type", value: "project")])
         let nodes = view.matchingNodes(root: Self.vaultURL, snapshot: snapshot)
         #expect(Set(nodes.map(\.label)) == Set(["mdv", "kge", "old-tool"]))
     }
