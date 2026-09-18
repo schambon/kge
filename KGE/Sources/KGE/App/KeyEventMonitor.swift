@@ -35,11 +35,11 @@ final class KeyEventMonitor {
             guard let self else { return event }
             return self.handle(event) ? nil : event
         }
-        swipeMonitor = NSEvent.addLocalMonitorForEvents(matching: .swipe) { [weak self] event in
-            guard let self, event.deltaX != 0 else { return event }
-            // NSEvent swipe deltaX: +1 = swipe left, -1 = swipe right.
-            if event.deltaX < 0 { self.onSwipeBack?() } else { self.onSwipeForward?() }
-            return nil
+        // WKWebView consumes horizontal two-finger gestures itself, so no `.swipe` NSEvent
+        // ever reaches the app. Recognise the swipe from the scroll-wheel stream instead.
+        swipeMonitor = NSEvent.addLocalMonitorForEvents(matching: .scrollWheel) { [weak self] event in
+            self?.trackSwipe(event)
+            return event
         }
     }
 
@@ -52,6 +52,27 @@ final class KeyEventMonitor {
             NSEvent.removeMonitor(monitor)
         }
         monitor = nil
+    }
+
+    private var swipeDX: CGFloat = 0
+    private var swipeDY: CGFloat = 0
+    private var swipeFired = false
+
+    /// Accumulates one trackpad gesture's deltas and fires back/forward once when it is
+    /// clearly horizontal and long enough. Never consumes the event.
+    private func trackSwipe(_ event: NSEvent) {
+        guard event.hasPreciseScrollingDeltas, event.momentumPhase == [] else { return }
+        if event.phase.contains(.began) || event.phase.contains(.mayBegin) {
+            swipeDX = 0; swipeDY = 0; swipeFired = false
+        }
+        guard !swipeFired else { return }
+        // Normalise so positive = fingers moved right, regardless of natural-scrolling setting.
+        let sign: CGFloat = event.isDirectionInvertedFromDevice ? 1 : -1
+        swipeDX += event.scrollingDeltaX * sign
+        swipeDY += abs(event.scrollingDeltaY)
+        guard abs(swipeDX) > 120, abs(swipeDX) > 2 * swipeDY else { return }
+        swipeFired = true
+        if swipeDX > 0 { onSwipeBack?() } else { onSwipeForward?() }
     }
 
     /// Returns `true` if the event was consumed.
