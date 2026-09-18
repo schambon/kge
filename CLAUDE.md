@@ -4,7 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Current state
 
-Scaffolded only: an Xcode project (`KGE/KGE.xcodeproj`) with a placeholder SwiftUI shell (`RootView`), the two SPM dependencies wired up, and one passing smoke test. No app logic yet — no indexing, rendering, sidebar, or dynamic views. Read `KGE — Build Brief.md` before designing anything, and prefer it over assumptions made here.
+All ten build milestones from the implementation plan are done: indexing (`GraphIndex`, id/backlink index, FSEvents live updates), the wiki-link/HTML rendering pipeline, the WKWebView content pane with click-through navigation, the real sidebar tree, keyboard shortcuts (S/j/k/B/L/D, Cmd-O/F/S, history), find-in-page, quick-open, and dynamic views (builder, save/delete, sidebar + quick-open integration). 22 unit tests cover the indexer, renderer, navigation history, dynamic-view filtering/persistence, and a real FSEvents round-trip. Read `KGE — Build Brief.md` before changing behavior described there — it remains authoritative over assumptions made here.
+
+Follow-up work not yet done: app icon/branding, onboarding/empty-state polish beyond the basic "no folder open" placeholder, and the deeper manual keyboard/GUI walkthrough noted in the plan (headless CI can't drive the actual WKWebView key handling or SwiftUI `List` lazy-loading behavior — those were verified via unit-level proxies; a human pass in Xcode is still worthwhile before shipping).
 
 The project is generated with **XcodeGen** from `KGE/project.yml`, not hand-edited as XML. After adding/removing/moving source files, or changing targets, dependencies, or build settings, edit `project.yml` and regenerate — do not hand-edit `KGE.xcodeproj/project.pbxproj`:
 

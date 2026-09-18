@@ -1,0 +1,83 @@
+import Foundation
+import Testing
+@testable import KGE
+
+@Suite("DynamicView matching")
+struct DynamicViewMatchingTests {
+    @Test("matches nodes of the given type within the folder subtree, not siblings")
+    func matchesSubtreeOnly() async throws {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        let sub = dir.appendingPathComponent("projects")
+        let subDeep = sub.appendingPathComponent("nested")
+        try FileManager.default.createDirectory(at: subDeep, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: dir) }
+
+        let inSub = sub.appendingPathComponent("a.md")
+        let inNested = subDeep.appendingPathComponent("b.md")
+        let outside = dir.appendingPathComponent("c.md")
+
+        try "---\nid: a\ntype: project\n---\nBody".write(to: inSub, atomically: true, encoding: .utf8)
+        try "---\nid: b\ntype: project\n---\nBody".write(to: inNested, atomically: true, encoding: .utf8)
+        try "---\nid: c\ntype: project\n---\nBody".write(to: outside, atomically: true, encoding: .utf8)
+
+        let index = GraphIndex()
+        for url in [inSub, inNested, outside] {
+            await index.reindex(url: url, action: .addOrUpdate)
+        }
+        let snapshot = await index.snapshot()
+
+        let view = DynamicView(name: "Projects", typeCanonical: "project", folderRelativePath: "projects")
+        let nodes = view.matchingNodes(root: dir, snapshot: snapshot)
+
+        #expect(Set(nodes.map(\.url)) == Set([inSub, inNested]))
+    }
+
+    @Test("empty folderRelativePath matches the whole project root")
+    func emptyFolderMatchesRoot() async throws {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: dir) }
+
+        let a = dir.appendingPathComponent("a.md")
+        try "---\nid: a\ntype: note\n---\nBody".write(to: a, atomically: true, encoding: .utf8)
+
+        let index = GraphIndex()
+        await index.reindex(url: a, action: .addOrUpdate)
+        let snapshot = await index.snapshot()
+
+        let view = DynamicView(name: "All notes", typeCanonical: "note", folderRelativePath: "")
+        let nodes = view.matchingNodes(root: dir, snapshot: snapshot)
+
+        #expect(nodes.map(\.url) == [a])
+    }
+}
+
+@Suite("DynamicViewStore")
+@MainActor
+struct DynamicViewStoreTests {
+    @Test("save, load, and delete round-trip against a temp Application Support directory")
+    func saveLoadDeleteRoundTrip() throws {
+        // Use a distinct fake project root per test run so stores don't collide.
+        let fakeRoot = URL(fileURLWithPath: "/tmp/kge-test-\(UUID().uuidString)")
+
+        let store = DynamicViewStore()
+        store.load(forProjectRoot: fakeRoot)
+        #expect(store.views.isEmpty)
+
+        let view = DynamicView(name: "My View", typeCanonical: "project", folderRelativePath: "")
+        store.save(view)
+        #expect(store.views.count == 1)
+
+        // A fresh store instance loading the same root sees the persisted view.
+        let reloaded = DynamicViewStore()
+        reloaded.load(forProjectRoot: fakeRoot)
+        #expect(reloaded.views.first?.name == "My View")
+
+        reloaded.delete(id: view.id)
+        #expect(reloaded.views.isEmpty)
+
+        let reloadedAgain = DynamicViewStore()
+        reloadedAgain.load(forProjectRoot: fakeRoot)
+        #expect(reloadedAgain.views.isEmpty)
+    }
+}
