@@ -8,6 +8,15 @@ struct LinksPopoverView: View {
     let nodes: [DisplayNode]
     let onSelect: (URL) -> Void
 
+    @State private var selectedURL: URL?
+    @FocusState private var isFocused: Bool
+
+    private func moveSelection(_ delta: Int) {
+        guard !nodes.isEmpty else { return }
+        let current = nodes.firstIndex { $0.url == selectedURL } ?? (delta > 0 ? -1 : nodes.count)
+        selectedURL = nodes[min(max(current + delta, 0), nodes.count - 1)].url
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text(title)
@@ -19,6 +28,7 @@ struct LinksPopoverView: View {
                     .foregroundStyle(.secondary)
                     .padding()
             } else {
+                ScrollViewReader { proxy in
                 List(nodes, id: \.url) { node in
                     Button {
                         onSelect(node.url)
@@ -33,9 +43,27 @@ struct LinksPopoverView: View {
                         }
                     }
                     .buttonStyle(.plain)
+                    .listRowBackground(node.url == selectedURL ? Color.accentColor.opacity(0.25) : Color.clear)
+                    .id(node.url)
+                }
+                .focusable()
+                .focused($isFocused)
+                .onKeyPress(.downArrow) { moveSelection(1); return .handled }
+                .onKeyPress(.upArrow) { moveSelection(-1); return .handled }
+                .onKeyPress("j") { moveSelection(1); return .handled }
+                .onKeyPress("k") { moveSelection(-1); return .handled }
+                .onKeyPress(.return) {
+                    if let url = selectedURL { onSelect(url) }
+                    return .handled
+                }
+                .onChange(of: selectedURL) { if let url = selectedURL { proxy.scrollTo(url) } }
                 }
             }
         }
         .frame(minWidth: 260, minHeight: 200)
+        .onAppear {
+            selectedURL = nodes.first?.url
+            isFocused = true
+        }
     }
 }
