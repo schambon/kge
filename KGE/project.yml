@@ -1,0 +1,70 @@
+name: KGE
+options:
+  bundleIdPrefix: org.schambon
+  deploymentTarget:
+    macOS: "14.0"
+  createIntermediateGroups: true
+
+packages:
+  SwiftMarkdown:
+    url: https://github.com/apple/swift-markdown.git
+    from: 0.5.0
+  Yams:
+    url: https://github.com/jpsim/Yams.git
+    from: 5.1.0
+
+targets:
+  KGE:
+    type: application
+    platform: macOS
+    sources:
+      - path: Sources/KGE
+    dependencies:
+      - package: SwiftMarkdown
+        product: Markdown
+      - package: Yams
+    info:
+      path: Sources/KGE/Resources/Info.plist
+      properties:
+        CFBundleDisplayName: KGE
+        LSMinimumSystemVersion: "14.0"
+        NSHumanReadableCopyright: ""
+    entitlements:
+      path: Sources/KGE/Resources/KGE.entitlements
+      properties:
+        com.apple.security.app-sandbox: true
+        com.apple.security.files.user-selected.read-write: true
+        com.apple.security.files.bookmarks.app-scope: true
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: org.schambon.KGE
+        MACOSX_DEPLOYMENT_TARGET: "14.0"
+        SWIFT_VERSION: "6.0"
+        ENABLE_PREVIEWS: true
+        CODE_SIGN_STYLE: Automatic
+        GENERATE_INFOPLIST_FILE: false
+  KGETests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: Tests/KGETests
+    dependencies:
+      - target: KGE
+    settings:
+      base:
+        SWIFT_VERSION: "6.0"
+        MACOSX_DEPLOYMENT_TARGET: "14.0"
+        GENERATE_INFOPLIST_FILE: true
+
+schemes:
+  KGE:
+    build:
+      targets:
+        KGE: all
+        KGETests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - KGETests

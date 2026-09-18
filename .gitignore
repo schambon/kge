@@ -1,0 +1,11 @@
+# Xcode
+KGE/*.xcodeproj/xcuserdata/
+KGE/*.xcodeproj/project.xcworkspace/xcuserdata/
+**/xcuserdata/
+*.xcuserstate
+DerivedData/
+.build/
+.swiftpm/
+
+# macOS
+.DS_Store
