@@ -37,6 +37,7 @@ struct QuickOpenView: View {
     let onCancel: () -> Void
 
     @State private var query = ""
+    @State private var selectedID: String?
     @FocusState private var isFocused: Bool
 
     private var allItems: [QuickOpenItem] {
@@ -71,6 +72,13 @@ struct QuickOpenView: View {
         }
     }
 
+    private func moveSelection(_ delta: Int) {
+        let items = filteredItems
+        guard !items.isEmpty else { return }
+        let current = items.firstIndex { $0.id == selectedID } ?? (delta > 0 ? -1 : items.count)
+        selectedID = items[min(max(current + delta, 0), items.count - 1)].id
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             TextField("Quick Open", text: $query)
@@ -79,13 +87,18 @@ struct QuickOpenView: View {
                 .padding()
                 .focused($isFocused)
                 .onSubmit {
-                    if let first = filteredItems.first {
-                        select(first)
+                    let items = filteredItems
+                    if let item = items.first(where: { $0.id == selectedID }) ?? items.first {
+                        select(item)
                     }
                 }
+                .onKeyPress(.downArrow) { moveSelection(1); return .handled }
+                .onKeyPress(.upArrow) { moveSelection(-1); return .handled }
+                .onChange(of: query) { selectedID = filteredItems.first?.id }
 
             Divider()
 
+            ScrollViewReader { proxy in
             List(filteredItems) { item in
                 Button {
                     select(item)
@@ -100,10 +113,17 @@ struct QuickOpenView: View {
                     }
                 }
                 .buttonStyle(.plain)
+                .listRowBackground(item.id == selectedID ? Color.accentColor.opacity(0.25) : Color.clear)
+                .id(item.id)
+            }
+            .onChange(of: selectedID) { if let id = selectedID { proxy.scrollTo(id) } }
             }
         }
         .frame(width: 420, height: 360)
-        .onAppear { isFocused = true }
+        .onAppear {
+            isFocused = true
+            selectedID = filteredItems.first?.id
+        }
         .onExitCommand(perform: onCancel)
     }
 }

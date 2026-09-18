@@ -26,7 +26,7 @@ struct DynamicViewMatchingTests {
         }
         let snapshot = await index.snapshot()
 
-        let view = DynamicView(name: "Projects", typeCanonical: "project", folderRelativePath: "projects")
+        let view = DynamicView(name: "Projects", folderRelativePath: "projects", criteria: [ViewCriterion(key: "type", value: "project")])
         let nodes = view.matchingNodes(root: dir, snapshot: snapshot)
 
         #expect(Set(nodes.map(\.url)) == Set([inSub, inNested]))
@@ -45,7 +45,7 @@ struct DynamicViewMatchingTests {
         await index.reindex(url: a, action: .addOrUpdate)
         let snapshot = await index.snapshot()
 
-        let view = DynamicView(name: "All notes", typeCanonical: "note", folderRelativePath: "")
+        let view = DynamicView(name: "All notes", folderRelativePath: "", criteria: [ViewCriterion(key: "type", value: "note")])
         let nodes = view.matchingNodes(root: dir, snapshot: snapshot)
 
         #expect(nodes.map(\.url) == [a])
@@ -64,7 +64,7 @@ struct DynamicViewStoreTests {
         store.load(forProjectRoot: fakeRoot)
         #expect(store.views.isEmpty)
 
-        let view = DynamicView(name: "My View", typeCanonical: "project", folderRelativePath: "")
+        let view = DynamicView(name: "My View", folderRelativePath: "", criteria: [ViewCriterion(key: "type", value: "project")])
         store.save(view)
         #expect(store.views.count == 1)
 
@@ -79,5 +79,36 @@ struct DynamicViewStoreTests {
         let reloadedAgain = DynamicViewStore()
         reloadedAgain.load(forProjectRoot: fakeRoot)
         #expect(reloadedAgain.views.isEmpty)
+    }
+}
+
+@Suite("DynamicView attribute criteria")
+struct DynamicViewCriteriaTests {
+    @Test("type + attribute criteria are ANDed; legacy typeCanonical JSON still decodes")
+    func attributeCriteria() async throws {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: dir) }
+
+        let alive = dir.appendingPathComponent("alice.md")
+        let dead = dir.appendingPathComponent("bob.md")
+        let project = dir.appendingPathComponent("p.md")
+        try "---\nid: a\ntype: person\nstatus: alive\n---\n".write(to: alive, atomically: true, encoding: .utf8)
+        try "---\nid: b\ntype: person\nstatus: dead\n---\n".write(to: dead, atomically: true, encoding: .utf8)
+        try "---\nid: p\ntype: project\nstatus: alive\n---\n".write(to: project, atomically: true, encoding: .utf8)
+
+        let index = GraphIndex()
+        for url in [alive, dead, project] { await index.reindex(url: url, action: .addOrUpdate) }
+        let snapshot = await index.snapshot()
+
+        let view = DynamicView(name: "Living", folderRelativePath: "", criteria: [
+            ViewCriterion(key: "type", value: "person"),
+            ViewCriterion(key: "status", value: "alive"),
+        ])
+        #expect(view.matchingNodes(root: dir, snapshot: snapshot).map(\.url) == [alive])
+
+        let legacy = Data(#"{"id":"\#(UUID().uuidString)","name":"Old","typeCanonical":"project","folderRelativePath":""}"#.utf8)
+        let decoded = try JSONDecoder().decode(DynamicView.self, from: legacy)
+        #expect(decoded.criteria.map(\.value) == ["project"])
     }
 }

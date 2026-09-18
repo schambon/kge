@@ -16,6 +16,8 @@ struct IndexSnapshot: Sendable {
         var frontmatter: Frontmatter?
         var canonicalKey: String?
         var outgoingKeys: [String]
+        /// All scalar/list frontmatter attributes, stringified (list values keep each element).
+        var attributes: [String: [String]] = [:]
     }
 
     var records: [URL: FileRecord] = [:]
@@ -81,7 +83,8 @@ actor GraphIndex {
         records[url] = IndexSnapshot.FileRecord(
             frontmatter: frontmatter,
             canonicalKey: canonicalKey,
-            outgoingKeys: outgoingKeys
+            outgoingKeys: outgoingKeys,
+            attributes: yaml.map(Frontmatter.attributes(fromYAML:)) ?? [:]
         )
 
         if let canonicalKey {

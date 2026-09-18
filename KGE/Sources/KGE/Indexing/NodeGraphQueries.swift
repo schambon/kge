@@ -7,12 +7,15 @@ import Foundation
 enum NodeGraphQueries {
     /// `record.outgoingKeys` was already computed by the indexer — this resolves each
     /// key against `idIndex` (not a rescan of the body) into display nodes, with
-    /// multiple rows per key when a target id is duplicated.
+    /// multiple rows per key when a target id is duplicated. Each target appears once, however
+    /// many times the body links to it.
     static func forwardLinks(for url: URL, snapshot: IndexSnapshot) -> [DisplayNode] {
         guard let record = snapshot.records[url] else { return [] }
+        var seen = Set<URL>()
         return record.outgoingKeys.flatMap { key -> [DisplayNode] in
-            (snapshot.idIndex[key] ?? []).map { target in
-                DisplayNode(url: target, label: IndexSnapshot.displayLabel(for: target), subtitle: key)
+            (snapshot.idIndex[key] ?? []).compactMap { target in
+                guard seen.insert(target).inserted else { return nil }
+                return DisplayNode(url: target, label: IndexSnapshot.displayLabel(for: target), subtitle: key)
             }
         }
     }
