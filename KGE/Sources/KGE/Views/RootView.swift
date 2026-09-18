@@ -157,6 +157,8 @@ struct RootView: View {
             keyEventMonitor.register("<") { goBack() }
             keyEventMonitor.register(">") { goForward() }
             keyEventMonitor.register("d") { openDynamicViewBuilder() }
+            keyEventMonitor.onSwipeBack = { goBack() }
+            keyEventMonitor.onSwipeForward = { goForward() }
             keyEventMonitor.start()
         }
         .onDisappear {

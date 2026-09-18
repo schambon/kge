@@ -15,6 +15,12 @@ import AppKit
 @MainActor
 final class KeyEventMonitor {
     private var monitor: Any?
+    private var swipeMonitor: Any?
+
+    /// Called for a two-finger horizontal trackpad swipe: `back` when swiping right
+    /// (Safari's convention), forward when swiping left.
+    var onSwipeBack: (() -> Void)?
+    var onSwipeForward: (() -> Void)?
     private var handlers: [String: () -> Void] = [:]
 
     /// Binds a bare key (no Command modifier) to an action. Re-registering the same key
@@ -29,9 +35,19 @@ final class KeyEventMonitor {
             guard let self else { return event }
             return self.handle(event) ? nil : event
         }
+        swipeMonitor = NSEvent.addLocalMonitorForEvents(matching: .swipe) { [weak self] event in
+            guard let self, event.deltaX != 0 else { return event }
+            // NSEvent swipe deltaX: +1 = swipe left, -1 = swipe right.
+            if event.deltaX < 0 { self.onSwipeBack?() } else { self.onSwipeForward?() }
+            return nil
+        }
     }
 
     func stop() {
+        if let swipeMonitor {
+            NSEvent.removeMonitor(swipeMonitor)
+        }
+        swipeMonitor = nil
         if let monitor {
             NSEvent.removeMonitor(monitor)
         }
