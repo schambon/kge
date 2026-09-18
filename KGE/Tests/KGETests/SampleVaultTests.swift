@@ -25,6 +25,11 @@ struct SampleVaultTests {
         return (index, await index.snapshot())
     }
 
+    @Test("the vault's root index.md is detected as its home page")
+    func hasRootIndexPage() {
+        #expect(ProjectController.indexFileURL(in: Self.vaultURL) == Self.vaultURL.appendingPathComponent("index.md"))
+    }
+
     @Test("indexes every node and resolves shorthand and full type spellings to the same key")
     func indexesExpectedNodes() async {
         let (_, snapshot) = await buildIndex()

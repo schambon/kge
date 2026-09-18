@@ -63,6 +63,7 @@ These are decisions already made in the brief; changing one has knock-on effects
 - **One shared reindex primitive** serves all three refresh paths (initial build, FSEvents incremental update, manual reindex): "(re)parse this one file, splice its id/type and outgoing links into the index." It needs a remove path for deleted/renamed files, not just add/update.
 - **FSEvents, not kqueue/DispatchSource.** Kqueue needs one watch per directory and silently drops events past a few thousand directories.
 - **Index is in-memory only**, built asynchronously at launch, never persisted. Target corpus is 300–10,000 nodes; caching only pays off far above that and costs an invalidation problem.
+- **A folder's home page is `index.md` directly under its root** (not searched recursively). Opening a folder auto-opens it if present (`ProjectController.indexFileURL(in:)`); otherwise the content pane stays on its placeholder. Matched case-insensitively.
 
 ## Graph model
 

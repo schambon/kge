@@ -1,9 +1,14 @@
 Welcome to the KGE sample vault — a small fake knowledge graph for manually exercising
-every feature in the build brief. This file has no `id`/`type` frontmatter, so it's an
-entry point you can open directly but it can never be a `[[type:id]]` link *target*
-(open [[proj:mdv]] or [[proj:kge]] instead if you're testing target resolution).
+every feature in the build brief. This is `index.md`, the vault's home page by
+convention — opening this folder in KGE (Cmd-Shift-O) should land here automatically.
+It has no `id`/`type` frontmatter, so it's an entry point you can open directly but it
+can never be a `[[type:id]]` link *target* (open [[proj:mdv]] or [[proj:kge]] instead if
+you're testing target resolution).
 
 ## What to try
+
+- **The home-page convention itself**: reopen this folder (or relaunch the app with it
+  as the last-opened project) and confirm it lands on this file, not a blank pane.
 
 - **Resolved wiki-links, both shorthand and full type**: [[proj:mdv]] uses the `proj`
   shorthand; [[project:kge]] spells the type out — both resolve, since the shorthand

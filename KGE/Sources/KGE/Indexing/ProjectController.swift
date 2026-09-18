@@ -111,6 +111,18 @@ final class ProjectController: ObservableObject {
         }
     }
 
+    /// The root's home page, by convention `index.md` directly under the project root
+    /// (not searched recursively — only the top-level root counts). Matched
+    /// case-insensitively so `Index.md` on a case-sensitive volume is still found.
+    nonisolated static func indexFileURL(in root: URL) -> URL? {
+        let contents = (try? FileManager.default.contentsOfDirectory(
+            at: root,
+            includingPropertiesForKeys: nil,
+            options: [.skipsHiddenFiles]
+        )) ?? []
+        return contents.first { $0.lastPathComponent.lowercased() == "index.md" }
+    }
+
     /// All `.md` files under `root`, found via a recursive directory walk — the same
     /// mechanism used to build the sidebar tree and the id index (no separate mechanism
     /// per the brief).

@@ -18,6 +18,7 @@
 		22E8918781B7A5549FA81DB6 /* WikiLinkResolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2E5DB80DBC525803BB5E0DE /* WikiLinkResolverTests.swift */; };
 		23301D20C5C52919C74D77BE /* Frontmatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8C1C50C678559541BC557B1 /* Frontmatter.swift */; };
 		2C614E5FDBEC8B5034515E4B /* DynamicViewStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 351C2863ABA99A6502CD96E6 /* DynamicViewStore.swift */; };
+		2CF01E17BBBE0A44318C60C2 /* IndexFileURLTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAC4CBC89BD60CE9A679B768 /* IndexFileURLTests.swift */; };
 		32B95DA1950708C677A06426 /* DynamicViewRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A827A3659AC8B456D4F4D1D8 /* DynamicViewRenderer.swift */; };
 		33C0DA1D991306A04DD0AF6E /* KGEWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4384093AC4F0A518FE5D5A44 /* KGEWebView.swift */; };
 		46EC9C270B807CEBB9A851FC /* WikiLinkScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F364582A50A02A524454B6C /* WikiLinkScanner.swift */; };
@@ -109,6 +110,7 @@
 		ECE90247061D308C6FD85501 /* NodeGraphQueries.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeGraphQueries.swift; sourceTree = "<group>"; };
 		F8C1C50C678559541BC557B1 /* Frontmatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Frontmatter.swift; sourceTree = "<group>"; };
 		FA9927C84EB89A6454D2359A /* FileWatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileWatcher.swift; sourceTree = "<group>"; };
+		FAC4CBC89BD60CE9A679B768 /* IndexFileURLTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IndexFileURLTests.swift; sourceTree = "<group>"; };
 		FC665D1BA8BC517715961833 /* GraphIndex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GraphIndex.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -276,6 +278,7 @@
 				3FA639A12BA542B525D74F61 /* FileTreeNodeTests.swift */,
 				B5A0C8CF5E2409E351DA8CF0 /* FileWatcherTests.swift */,
 				4688B25EEC6319B196D148C6 /* GraphIndexTests.swift */,
+				FAC4CBC89BD60CE9A679B768 /* IndexFileURLTests.swift */,
 				6CBD77B7D312527933647312 /* KGETests.swift */,
 				A3032F4870712D3C39091CF0 /* MarkdownRendererSectionsTests.swift */,
 				585A96A91E21B6DEB4145D9C /* MarkdownRendererTests.swift */,
@@ -431,6 +434,7 @@
 				D5B7D2E7B75ED0B5808C35B5 /* FileTreeNodeTests.swift in Sources */,
 				02046904E4B0EB7C192DDC01 /* FileWatcherTests.swift in Sources */,
 				AE0D1AE8D23C01B1066C2841 /* GraphIndexTests.swift in Sources */,
+				2CF01E17BBBE0A44318C60C2 /* IndexFileURLTests.swift in Sources */,
 				A72916A66C3582AA3D6EB662 /* KGETests.swift in Sources */,
 				5F4E6919725FA2ADE8E5383B /* MarkdownRendererSectionsTests.swift in Sources */,
 				C5B726D588DAE5F29B03EA94 /* MarkdownRendererTests.swift in Sources */,

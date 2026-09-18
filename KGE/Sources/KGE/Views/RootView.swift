@@ -148,6 +148,7 @@ struct RootView: View {
             await projectController.restoreLastProjectIfAvailable()
             if let root = projectController.projectRoot {
                 dynamicViewStore.load(forProjectRoot: root)
+                openIndexPageIfPresent()
             }
         }
         .onAppear {
@@ -265,7 +266,17 @@ struct RootView: View {
         Task {
             await projectController.openProject(at: url)
             dynamicViewStore.load(forProjectRoot: url)
+            openIndexPageIfPresent()
         }
+    }
+
+    /// Opens the project root's home page — by convention `index.md` directly under the
+    /// root — right after a folder is opened, if one exists. Silently does nothing
+    /// otherwise, leaving the content pane on its placeholder.
+    private func openIndexPageIfPresent() {
+        guard let root = projectController.projectRoot,
+              let indexURL = ProjectController.indexFileURL(in: root) else { return }
+        currentURL = indexURL
     }
 
     private func renderNode(url: URL) {
