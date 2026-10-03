@@ -1,4 +1,5 @@
 import SwiftUI
+import Combine
 
 /// What's currently shown in the content pane: a rendered node, or a dynamic view
 /// (transient/unsaved when `savedID == nil`, otherwise the id of the saved view it
@@ -45,6 +46,9 @@ struct RootView: View {
     @State private var builderCriteria: [ViewCriterion] = []
     @State private var builderFolder = ""
     @State private var builderLabelStyle: LinkLabelStyle = .fileName
+    /// Set while the builder sheet is editing an existing saved view's definition.
+    @State private var editingViewID: UUID?
+    @State private var editNameDraft = ""
     @State private var isSaveNamePromptPresented = false
     @State private var saveNameDraft = ""
 
@@ -158,8 +162,12 @@ struct RootView: View {
         .onReceive(NotificationCenter.default.publisher(for: .kgeDynamicViewRequested)) { _ in
             openDynamicViewBuilder()
         }
-        .onReceive(NotificationCenter.default.publisher(for: .kgeSaveOrDeleteDynamicViewRequested)) { _ in
-            saveOrDeleteDynamicView()
+        .onReceive(dynamicViewCommands) { note in
+            if note.name == .kgeEditDynamicViewRequested {
+                beginEditDynamicView()
+            } else {
+                saveOrDeleteDynamicView()
+            }
         }
         .onReceive(NotificationCenter.default.publisher(for: .kgeReindexRequested)) { _ in
             Task { await projectController.fullReindex() }
@@ -211,8 +219,10 @@ struct RootView: View {
                 onCancel: { isQuickOpenPresented = false }
             )
         }
-        .sheet(isPresented: $isDynamicViewBuilderPresented) {
+        .sheet(isPresented: $isDynamicViewBuilderPresented, onDismiss: commitEditDynamicView) {
             DynamicViewBuilderView(
+                name: editingViewID == nil ? nil : $editNameDraft,
+                onCancel: editingViewID == nil ? nil : { cancelEditDynamicView() },
                 availableTypes: availableTypes,
                 availableFolders: availableFolders,
                 criteria: $builderCriteria,
@@ -228,6 +238,12 @@ struct RootView: View {
                 onCancel: { isSaveNamePromptPresented = false }
             )
         }
+    }
+
+    private var dynamicViewCommands: AnyPublisher<Notification, Never> {
+        NotificationCenter.default.publisher(for: .kgeEditDynamicViewRequested)
+            .merge(with: NotificationCenter.default.publisher(for: .kgeSaveOrDeleteDynamicViewRequested))
+            .eraseToAnyPublisher()
     }
 
     @ViewBuilder
@@ -261,6 +277,12 @@ struct RootView: View {
                 }
                 .help("Save Dynamic View")
             } else {
+                Button {
+                    beginEditDynamicView()
+                } label: {
+                    Image(systemName: "pencil")
+                }
+                .help("Edit Dynamic View")
                 Button {
                     saveOrDeleteDynamicView()
                 } label: {
@@ -381,11 +403,11 @@ struct RootView: View {
     private func renderTransientDynamicViewIfNeeded() {
         guard projectController.projectRoot != nil, isDynamicViewBuilderPresented else { return }
         currentURL = nil
-        let entry = ContentKind.dynamicView(savedID: nil, criteria: builderCriteria, folderRelativePath: builderFolder)
+        let entry = ContentKind.dynamicView(savedID: editingViewID, criteria: builderCriteria, folderRelativePath: builderFolder)
         contentKind = entry
         renderCurrentDynamicView()
-        // The builder re-renders on every edit: keep a single transient history entry.
-        if case .dynamicView(nil, _, _)? = history.current {
+        // The builder re-renders on every edit: keep a single history entry for it.
+        if case .dynamicView(let id, _, _)? = history.current, id == editingViewID {
             history.replaceCurrent(entry)
         } else {
             history.push(entry)
@@ -403,10 +425,53 @@ struct RootView: View {
         history.push(entry)
     }
 
+    /// Opens the builder on the current saved view. Edits render live and are persisted
+    /// when the sheet closes; Cancel restores the stored definition.
+    private func beginEditDynamicView() {
+        guard case .dynamicView(let savedID?, _, _) = contentKind,
+              let view = dynamicViewStore.views.first(where: { $0.id == savedID }) else { return }
+        builderCriteria = view.criteria
+        builderFolder = view.folderRelativePath
+        builderLabelStyle = view.labelStyle
+        editNameDraft = view.name
+        editingViewID = view.id
+        isDynamicViewBuilderPresented = true
+    }
+
+    private func commitEditDynamicView() {
+        guard let id = editingViewID else { return }
+        editingViewID = nil
+        guard let original = dynamicViewStore.views.first(where: { $0.id == id }) else { return }
+        let name = editNameDraft.trimmingCharacters(in: .whitespaces)
+        dynamicViewStore.save(DynamicView(
+            id: id,
+            name: name.isEmpty ? original.name : name,
+            folderRelativePath: builderFolder,
+            criteria: builderCriteria,
+            labelStyle: builderLabelStyle
+        ))
+        renderCurrentDynamicView()
+    }
+
+    private func cancelEditDynamicView() {
+        if let id = editingViewID, let original = dynamicViewStore.views.first(where: { $0.id == id }) {
+            builderCriteria = original.criteria
+            builderFolder = original.folderRelativePath
+            builderLabelStyle = original.labelStyle
+            editNameDraft = original.name
+            let entry = ContentKind.dynamicView(savedID: id, criteria: original.criteria, folderRelativePath: original.folderRelativePath)
+            contentKind = entry
+            history.replaceCurrent(entry)
+        }
+        isDynamicViewBuilderPresented = false
+    }
+
     private func renderCurrentDynamicView() {
         guard case .dynamicView(let savedID, let criteria, let folder) = contentKind,
               let root = projectController.projectRoot else { return }
-        let name = savedID.flatMap { id in dynamicViewStore.views.first { $0.id == id }?.name } ?? "Dynamic View"
+        let name = savedID.flatMap { id in
+            id == editingViewID ? editNameDraft : dynamicViewStore.views.first { $0.id == id }?.name
+        } ?? "Dynamic View"
         let nodes = DynamicView(name: name, folderRelativePath: folder, criteria: criteria, labelStyle: builderLabelStyle)
             .matchingNodes(root: root, snapshot: projectController.snapshot)
         currentHTML = DynamicViewRenderer.renderPage(name: name, criteria: criteria, folderRelativePath: folder, nodes: nodes)

@@ -5,6 +5,10 @@ import SwiftUI
 /// attribute for the node type. Renders immediately as anything changes — there's no
 /// separate "apply" step; the caller re-renders on every change to the bindings.
 struct DynamicViewBuilderView: View {
+    /// Non-nil when editing a saved view: shows a name field and a Cancel button.
+    var name: Binding<String>? = nil
+    var onCancel: (() -> Void)? = nil
+
     let availableTypes: [String]
     let availableFolders: [String] // relative paths, "" = project root
 
@@ -16,8 +20,13 @@ struct DynamicViewBuilderView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Dynamic View")
+            Text(name == nil ? "Dynamic View" : "Edit Dynamic View")
                 .font(.headline)
+
+            if let name {
+                TextField("Name", text: name)
+                    .textFieldStyle(.roundedBorder)
+            }
 
             Picker("Folder", selection: $folderRelativePath) {
                 Text("Project root").tag("")
@@ -69,6 +78,9 @@ struct DynamicViewBuilderView: View {
 
             HStack {
                 Spacer()
+                if let onCancel {
+                    Button("Cancel", action: onCancel)
+                }
                 Button("Done", action: onClose)
                     .keyboardShortcut(.defaultAction)
             }

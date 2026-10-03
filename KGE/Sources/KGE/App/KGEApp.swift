@@ -22,6 +22,7 @@ extension Notification.Name {
 
     /// Posted by Cmd-S: save the current transient dynamic view, or delete it if it's
     /// already saved (the title-bar icon toggles between the two states).
+    static let kgeEditDynamicViewRequested = Notification.Name("kgeEditDynamicViewRequested")
     static let kgeSaveOrDeleteDynamicViewRequested = Notification.Name("kgeSaveOrDeleteDynamicViewRequested")
 
     /// Posted by the "Reindex" menu item: a manual full reindex, for recovering from any
@@ -77,6 +78,10 @@ struct KGEApp: App {
 
                 Button("New Dynamic View…") {
                     NotificationCenter.default.post(name: .kgeDynamicViewRequested, object: nil)
+                }
+
+                Button("Edit Dynamic View…") {
+                    NotificationCenter.default.post(name: .kgeEditDynamicViewRequested, object: nil)
                 }
 
                 Button("Save Dynamic View") {
