@@ -39,6 +39,7 @@ struct RootView: View {
     @State private var isNavigatingHistory = false
     @State private var swipeOffset: CGFloat = 0
     @State private var isQuickOpenPresented = false
+    @State private var isKeyboardHelpPresented = false
 
     @State private var isDynamicViewBuilderPresented = false
     @State private var builderCriteria: [ViewCriterion] = []
@@ -55,6 +56,16 @@ struct RootView: View {
     }
 
     var body: some View {
+        mainContent
+            .onReceive(NotificationCenter.default.publisher(for: .kgeKeyboardHelpRequested)) { _ in
+                isKeyboardHelpPresented = true
+            }
+            .sheet(isPresented: $isKeyboardHelpPresented) {
+                KeyboardHelpView(onClose: { isKeyboardHelpPresented = false })
+            }
+    }
+
+    private var mainContent: some View {
         NavigationSplitView {
             sidebarContent
                 .frame(minWidth: 200)
@@ -167,6 +178,7 @@ struct RootView: View {
             keyEventMonitor.register("<") { goBack() }
             keyEventMonitor.register(">") { goForward() }
             keyEventMonitor.register("d") { openDynamicViewBuilder() }
+            keyEventMonitor.register("?") { isKeyboardHelpPresented.toggle() }
             keyEventMonitor.onSwipeBack = { goBack() }
             keyEventMonitor.onSwipeForward = { goForward() }
             keyEventMonitor.onSwipeProgress = { dx in

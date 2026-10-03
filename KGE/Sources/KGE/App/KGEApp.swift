@@ -30,6 +30,9 @@ extension Notification.Name {
 
     /// Posted by Cmd-Shift-F: reveal the current node (or open folder) in Finder.
     static let kgeRevealInFinderRequested = Notification.Name("kgeRevealInFinderRequested")
+
+    /// Posted by `?` (bare key) and the Help menu item: show the keyboard shortcut reference.
+    static let kgeKeyboardHelpRequested = Notification.Name("kgeKeyboardHelpRequested")
 }
 
 @main
@@ -44,6 +47,11 @@ struct KGEApp: App {
                     NotificationCenter.default.post(name: .kgeOpenFolderRequested, object: nil)
                 }
                 .keyboardShortcut("o", modifiers: [.command, .shift])
+            }
+            CommandGroup(replacing: .help) {
+                Button("Keyboard Shortcuts") {
+                    NotificationCenter.default.post(name: .kgeKeyboardHelpRequested, object: nil)
+                }
             }
             CommandGroup(after: .textEditing) {
                 Button("Find…") {

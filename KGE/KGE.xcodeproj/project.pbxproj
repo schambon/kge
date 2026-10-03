@@ -38,6 +38,7 @@
 		AE0D1AE8D23C01B1066C2841 /* GraphIndexTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4688B25EEC6319B196D148C6 /* GraphIndexTests.swift */; };
 		B55ADF468A25C13800B0D871 /* Markdown in Frameworks */ = {isa = PBXBuildFile; productRef = E1E1B0669FFD825EE8AA83FA /* Markdown */; };
 		B71B66A5704BCD6B24B48557 /* FocusZone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9972E183D3EC93140A9132B6 /* FocusZone.swift */; };
+		C392C2A2662EEB80E36C6C09 /* KeyboardHelpView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 092157E9EC108DA2C9120719 /* KeyboardHelpView.swift */; };
 		C5B726D588DAE5F29B03EA94 /* MarkdownRendererTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 585A96A91E21B6DEB4145D9C /* MarkdownRendererTests.swift */; };
 		CE5B1F25251ECF9D26908C9D /* DynamicViewBuilderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95705F174D8D1C16551FF72D /* DynamicViewBuilderView.swift */; };
 		CF7B6A053CB283210D98E335 /* FindBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C72743253BA4A592CE72384 /* FindBarView.swift */; };
@@ -66,6 +67,7 @@
 
 /* Begin PBXFileReference section */
 		0164A7578DD99D556A16F040 /* KeyEventMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyEventMonitor.swift; sourceTree = "<group>"; };
+		092157E9EC108DA2C9120719 /* KeyboardHelpView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardHelpView.swift; sourceTree = "<group>"; };
 		0F364582A50A02A524454B6C /* WikiLinkScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WikiLinkScanner.swift; sourceTree = "<group>"; };
 		118CEF813581AA7040EBED9D /* QuickOpenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickOpenView.swift; sourceTree = "<group>"; };
 		197CCB47AF027E557B66D46A /* MarkdownFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownFile.swift; sourceTree = "<group>"; };
@@ -222,6 +224,7 @@
 				44FE60EF2018B44FB9ACCB20 /* RootView.swift */,
 				ED23A73A553FAD151AA92D12 /* Content */,
 				147C5677F61F4D4C1E7D4999 /* DynamicView */,
+				BC9F88EFE2F0E92B8C53F5D6 /* Help */,
 				DFD8A17489DCC8048818A0E9 /* QuickOpen */,
 				1ED991E55B2B36609DB86F8F /* Sidebar */,
 			);
@@ -247,6 +250,14 @@
 				84AF7E8231180503F1C79884 /* NavigationHistory.swift */,
 			);
 			path = Models;
+			sourceTree = "<group>";
+		};
+		BC9F88EFE2F0E92B8C53F5D6 /* Help */ = {
+			isa = PBXGroup;
+			children = (
+				092157E9EC108DA2C9120719 /* KeyboardHelpView.swift */,
+			);
+			path = Help;
 			sourceTree = "<group>";
 		};
 		C8B736EEA4E26D305EA729B3 /* Sources */ = {
@@ -409,6 +420,7 @@
 				ACC67CBDE37442E3B4D708D5 /* KGEApp.swift in Sources */,
 				33C0DA1D991306A04DD0AF6E /* KGEWebView.swift in Sources */,
 				F6C8FE499E24456BD10FEF7C /* KeyEventMonitor.swift in Sources */,
+				C392C2A2662EEB80E36C6C09 /* KeyboardHelpView.swift in Sources */,
 				4F1322FDD403CEDAC85D1346 /* LinksPopoverView.swift in Sources */,
 				8EE040F5960D32C24AE0880C /* MarkdownFile.swift in Sources */,
 				0B689AFF1BD1097360B82CD8 /* MarkdownRenderer.swift in Sources */,
