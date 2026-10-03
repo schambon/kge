@@ -10,6 +10,19 @@ import Markdown
 ///
 /// Forward-links/backlinks sections are layered in during M3 (currently always empty).
 enum MarkdownRenderer {
+    /// The file's raw text (frontmatter included) in a monospace block, through the
+    /// same shared template — the "view source" counterpart of `renderPage`.
+    static func renderSource(for file: MarkdownFile) -> String {
+        let raw = (try? String(contentsOf: file.url, encoding: .utf8)) ?? "Could not read file."
+        return HTMLTemplate.renderPage(
+            title: file.displayLabel,
+            slug: "source",
+            bodyHTML: "<pre class=\"kge-source\">\(HTMLTemplate.escapeHTML(raw))</pre>",
+            forwardLinksHTML: "",
+            backlinksHTML: ""
+        )
+    }
+
     static func renderPage(for file: MarkdownFile, snapshot: IndexSnapshot) -> String {
         guard let raw = try? String(contentsOf: file.url, encoding: .utf8) else {
             return HTMLTemplate.renderPage(

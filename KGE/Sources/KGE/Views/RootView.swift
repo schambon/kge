@@ -41,6 +41,7 @@ struct RootView: View {
     @State private var swipeOffset: CGFloat = 0
     @State private var isQuickOpenPresented = false
     @State private var isKeyboardHelpPresented = false
+    @State private var isViewingSource = false
 
     @State private var isDynamicViewBuilderPresented = false
     @State private var builderCriteria: [ViewCriterion] = []
@@ -82,7 +83,9 @@ struct RootView: View {
                     onOpenNode: { url in currentURL = url },
                     onOpenBacklinks: { linksPopover = .backlinks },
                     onOpenForwardLinks: { linksPopover = .forwardLinks },
-                    onWebViewCreated: { webView in findController.webView = webView }
+                    onWebViewCreated: { webView in findController.webView = webView },
+                    sourceToggleTitle: sourceToggleTitle,
+                    onToggleSource: { toggleSource() }
                 )
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .offset(x: swipeOffset)
@@ -338,8 +341,22 @@ struct RootView: View {
 
     private func renderNode(url: URL) {
         let file = MarkdownFile(url: url)
-        currentHTML = MarkdownRenderer.renderPage(for: file, snapshot: projectController.snapshot)
+        currentHTML = isViewingSource
+            ? MarkdownRenderer.renderSource(for: file)
+            : MarkdownRenderer.renderPage(for: file, snapshot: projectController.snapshot)
         currentBaseURL = url.deletingLastPathComponent()
+    }
+
+    /// Right-click item title; only offered while a file (not a dynamic view) is shown.
+    private var sourceToggleTitle: String? {
+        guard case .node? = contentKind else { return nil }
+        return isViewingSource ? "View Rendered" : "View Source"
+    }
+
+    private func toggleSource() {
+        guard case .node(let url)? = contentKind else { return }
+        isViewingSource.toggle()
+        renderNode(url: url)
     }
 
     private func goBack() {
