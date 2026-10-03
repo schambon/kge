@@ -7,6 +7,7 @@ enum HTMLTemplate {
     static func renderPage(
         title: String,
         slug: String,
+        metadataHTML: String = "",
         bodyHTML: String,
         forwardLinksHTML: String,
         backlinksHTML: String
@@ -24,6 +25,7 @@ enum HTMLTemplate {
         <header class="kge-header">
           <h1>{{TITLE}}</h1>
           <div class="kge-slug">{{SLUG}}</div>
+          {{METADATA}}
         </header>
         <main class="kge-body">
         {{BODY}}
@@ -40,13 +42,15 @@ enum HTMLTemplate {
         return shell
             .replacingOccurrences(of: "{{TITLE}}", with: escapeHTML(title))
             .replacingOccurrences(of: "{{SLUG}}", with: escapeHTML(slug))
+            .replacingOccurrences(of: "{{METADATA}}", with: metadataHTML)
             .replacingOccurrences(of: "{{BODY}}", with: bodyHTML)
             .replacingOccurrences(of: "{{FORWARDLINKS}}", with: forwardLinksHTML)
             .replacingOccurrences(of: "{{BACKLINKS}}", with: backlinksHTML)
     }
 
-    private static func escapeHTML(_ s: String) -> String {
+    static func escapeHTML(_ s: String) -> String {
         s.replacingOccurrences(of: "&", with: "&amp;")
+            .replacingOccurrences(of: "\"", with: "&quot;")
             .replacingOccurrences(of: "<", with: "&lt;")
             .replacingOccurrences(of: ">", with: "&gt;")
     }
@@ -86,6 +90,10 @@ enum HTMLTemplate {
     .kge-header { margin-bottom: 1.5rem; }
     .kge-header h1 { margin: 0 0 0.15rem; font-size: 1.6rem; }
     .kge-slug { color: var(--muted); font-family: ui-monospace, monospace; font-size: 0.85rem; }
+    dl.kge-meta { margin: 0.6rem 0 0; font-size: 0.85rem; color: var(--muted); display: grid; grid-template-columns: max-content 1fr; gap: 0.1rem 1rem; }
+    dl.kge-meta dt { font-family: ui-monospace, monospace; }
+    dl.kge-meta dd { margin: 0; }
+    dl.kge-meta ul { margin: 0; padding-left: 1.1rem; }
     .kge-body { max-width: 46rem; }
     .kge-body pre { background: var(--code-bg); padding: 0.75rem 1rem; border-radius: 6px; overflow-x: auto; }
     .kge-body code { font-family: ui-monospace, monospace; }
