@@ -27,6 +27,7 @@ targets:
       path: Sources/KGE/Resources/Info.plist
       properties:
         CFBundleDisplayName: KGE
+        CFBundleShortVersionString: "0.1.0"
         LSMinimumSystemVersion: "14.0"
         NSHumanReadableCopyright: ""
     entitlements:

@@ -13,3 +13,7 @@ DerivedData/
 # Claude Code
 .claude/worktrees/
 .claude/settings.local.json
+
+# Release build output
+KGE/build/
+KGE/dist/
