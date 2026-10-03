@@ -88,3 +88,7 @@ Diff mode, git integration, and mdv's external preprocessor hook (`-p CMD`); id 
 ## Documentation
 
 [`CLAUDE.md`](CLAUDE.md) holds architecture notes and guidance for AI coding assistants.
+
+## License
+
+MIT — see [`LICENSE`](LICENSE).
