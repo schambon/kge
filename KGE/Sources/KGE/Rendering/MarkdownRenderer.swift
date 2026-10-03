@@ -26,6 +26,7 @@ enum MarkdownRenderer {
 
         let document = Document(parsing: substituted)
         var bodyHTML = HTMLFormatter.format(document)
+        bodyHTML = rewriteRelativeFileLinks(in: bodyHTML, relativeTo: file.url)
         bodyHTML = addResolvedLinkClass(to: bodyHTML)
 
         let record = snapshot.records[file.url]
@@ -46,6 +47,34 @@ enum MarkdownRenderer {
             forwardLinksHTML: forwardLinksHTML,
             backlinksHTML: backlinksHTML
         )
+    }
+
+    /// Rewrites `<a href="rel/path.md">` links to existing local Markdown files into
+    /// `kge://open` links, resolved relative to the directory of `fileURL`, so they
+    /// navigate in-app (with history) like wiki-links. Links with a scheme, absolute
+    /// paths, pure fragments, and targets that don't exist are left untouched.
+    static func rewriteRelativeFileLinks(in html: String, relativeTo fileURL: URL) -> String {
+        guard let regex = try? NSRegularExpression(pattern: #"(<a\b[^>]*?\bhref=")([^"]*)(")"#) else {
+            return html
+        }
+        let dir = fileURL.deletingLastPathComponent()
+        let ns = html as NSString
+        var result = html
+        for m in regex.matches(in: html, range: NSRange(location: 0, length: ns.length)).reversed() {
+            let raw = ns.substring(with: m.range(at: 2))
+                .replacingOccurrences(of: "&amp;", with: "&")
+            guard !raw.isEmpty, !raw.hasPrefix("#"), !raw.hasPrefix("/"), !raw.hasPrefix("?"),
+                  raw.range(of: #"^[A-Za-z][A-Za-z0-9+.-]*:"#, options: .regularExpression) == nil
+            else { continue }
+            let pathPart = String(raw.prefix { $0 != "#" && $0 != "?" })
+            guard let decoded = pathPart.removingPercentEncoding, !decoded.isEmpty else { continue }
+            let target = URL(fileURLWithPath: decoded, relativeTo: dir).standardizedFileURL
+            guard ["md", "markdown"].contains(target.pathExtension.lowercased()),
+                  FileManager.default.fileExists(atPath: target.path) else { continue }
+            let href = KGELink.openHref(for: target).kgeHTMLEscaped
+            result = (result as NSString).replacingCharacters(in: m.range(at: 2), with: href)
+        }
+        return result
     }
 
     /// Post-process pass: inject `class="kge-link kge-resolved"` onto every
