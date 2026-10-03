@@ -40,4 +40,25 @@ struct MarkdownRendererTests {
         // Frontmatter must not leak into rendered body.
         #expect(!html.contains("type: project"))
     }
+
+    @Test("relative markdown links become in-app kge://open links")
+    func relativeLinksAreClickable() throws {
+        let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        let sub = tempDir.appendingPathComponent("sub dir")
+        try FileManager.default.createDirectory(at: sub, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        let target = sub.appendingPathComponent("target.md")
+        try "# T".write(to: target, atomically: true, encoding: .utf8)
+        let fileURL = tempDir.appendingPathComponent("a.md")
+        try "[x](sub%20dir/target.md#h) [y](missing.md) [z](https://example.com)"
+            .write(to: fileURL, atomically: true, encoding: .utf8)
+
+        let html = MarkdownRenderer.renderPage(for: MarkdownFile(url: fileURL), snapshot: IndexSnapshot())
+
+        let expected = KGELink.openHref(for: target.standardizedFileURL).kgeHTMLEscaped
+        #expect(html.contains("href=\"\(expected)\""))
+        #expect(html.contains("href=\"missing.md\""))
+        #expect(html.contains("href=\"https://example.com\""))
+    }
 }
