@@ -45,4 +45,20 @@ struct MetadataRendererTests {
         let html = MarkdownRenderer.renderPage(for: MarkdownFile(url: url), snapshot: IndexSnapshot())
         #expect(html.contains("<dt>status</dt><dd>active</dd>"))
     }
+
+    @Test("hides the redundant type row when id is the full type:id slug")
+    func hidesRedundantType() {
+        let html = MetadataRenderer.render(yaml: "id: task:x\ntype: task\nstatus: open")
+        #expect(html.contains("<dt>id</dt><dd>task:x</dd>"))
+        #expect(!html.contains("<dt>type</dt>"))
+        #expect(html.contains("<dt>status</dt>"))
+    }
+
+    @Test("full-slug ids index under type:id, not type:type:id")
+    func fullSlugCanonicalKey() {
+        #expect(TypeShorthand.canonicalKey(type: "task", id: "task:x") == "task:x")
+        #expect(TypeShorthand.canonicalKey(type: "proj", id: "proj:x") == "project:x")
+        #expect(TypeShorthand.canonicalKey(type: "task", id: "x") == "task:x")
+        #expect(TypeShorthand.canonicalKey(type: "task", id: "other:x") == "task:other:x")
+    }
 }

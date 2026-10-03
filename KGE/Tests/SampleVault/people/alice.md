@@ -1,5 +1,5 @@
 ---
-id: alice
+id: person:alice
 type: person
 ---
 # Alice

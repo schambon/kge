@@ -18,11 +18,11 @@ Open a folder and KGE renders its Markdown files, resolves links between notes b
 
 ## Notes and links
 
-A file is a *node* if its frontmatter has both `id` and `type`:
+A file is a *node* if its frontmatter has both `id` and `type`. By convention `id` is the full `type:id` slug (a bare `id: mdv` also works):
 
 ```markdown
 ---
-id: mdv
+id: project:mdv
 type: project
 ---
 # mdv

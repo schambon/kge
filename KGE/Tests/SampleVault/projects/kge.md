@@ -1,5 +1,5 @@
 ---
-id: kge
+id: project:kge
 type: project
 ---
 # KGE (Knowledge Graph Explorer)

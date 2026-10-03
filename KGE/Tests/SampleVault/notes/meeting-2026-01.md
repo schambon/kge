@@ -1,5 +1,5 @@
 ---
-id: meeting-jan
+id: note:meeting-jan
 type: note
 ---
 # KGE kickoff — 2026-01-15

@@ -74,7 +74,7 @@ actor GraphIndex {
 
         var canonicalKey: String?
         if let id = frontmatter?.id, let type = frontmatter?.type, !id.isEmpty, !type.isEmpty {
-            canonicalKey = "\(TypeShorthand.expand(type)):\(id)"
+            canonicalKey = TypeShorthand.canonicalKey(type: type, id: id)
         }
 
         let occurrences = WikiLinkScanner.scanWikiLinks(in: body)

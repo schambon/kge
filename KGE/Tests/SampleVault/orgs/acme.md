@@ -1,5 +1,5 @@
 ---
-id: acme
+id: org:acme
 type: org
 ---
 # Acme Corp

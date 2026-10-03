@@ -1,5 +1,5 @@
 ---
-id: unresolved-demo
+id: note:unresolved-demo
 type: note
 ---
 # Unresolved link demo

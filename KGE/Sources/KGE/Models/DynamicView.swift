@@ -77,7 +77,11 @@ enum LinkLabelStyle: String, Codable, CaseIterable, Identifiable, Sendable {
         case .fileName:
             return fileName
         case .id:
-            if let id = record.frontmatter?.id, !id.isEmpty { return id }
+            if let id = record.frontmatter?.id, !id.isEmpty {
+                // The type is shown separately as the subtitle, so drop a redundant `type:` prefix.
+                let bare = record.frontmatter?.type.flatMap { TypeShorthand.bareID(id, type: $0) } ?? id
+                return bare.isEmpty ? fileName : bare
+            }
             return fileName
         case .title:
             guard let text = try? String(contentsOf: url, encoding: .utf8) else { return fileName }

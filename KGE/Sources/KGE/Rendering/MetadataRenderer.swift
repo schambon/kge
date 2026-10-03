@@ -8,7 +8,14 @@ enum MetadataRenderer {
     static func render(yaml: String?) -> String {
         guard let yaml, let node = try? Yams.compose(yaml: yaml),
               let mapping = node.mapping, !mapping.isEmpty else { return "" }
-        return "<dl class=\"kge-meta\">\(entries(mapping))</dl>"
+        // `id` is usually the full `type:id` slug, which makes a separate `type` row redundant.
+        let idValue = mapping[Node("id")]?.scalar?.string
+        let hideType = idValue != nil && mapping[Node("type")]?.scalar.map {
+            TypeShorthand.bareID(idValue!, type: $0.string) != nil
+        } == true
+        var shown = mapping
+        if hideType { shown[Node("type")] = nil }
+        return "<dl class=\"kge-meta\">\(entries(shown))</dl>"
     }
 
     private static func entries(_ mapping: Node.Mapping) -> String {

@@ -11,4 +11,19 @@ enum TypeShorthand {
     static func expand(_ shorthand: String) -> String {
         table[shorthand] ?? shorthand
     }
+
+    /// Frontmatter `id` may be a bare id (`whatever`) or already the full slug
+    /// (`task:whatever`). Returns the slug's bare id when its prefix names `type`
+    /// (shorthands expanded), otherwise nil.
+    static func bareID(_ id: String, type: String) -> String? {
+        guard let colon = id.firstIndex(of: ":") else { return nil }
+        let prefix = String(id[..<colon])
+        guard expand(prefix) == expand(type) else { return nil }
+        return String(id[id.index(after: colon)...])
+    }
+
+    /// Canonical `type:id` key for a node, tolerating an `id` that already carries the type prefix.
+    static func canonicalKey(type: String, id: String) -> String {
+        "\(expand(type)):\(bareID(id, type: type) ?? id)"
+    }
 }

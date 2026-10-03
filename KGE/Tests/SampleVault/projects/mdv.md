@@ -1,5 +1,5 @@
 ---
-id: mdv
+id: project:mdv
 type: project
 ---
 # mdv

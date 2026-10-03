@@ -1,5 +1,5 @@
 ---
-id: dup
+id: note:dup
 type: note
 ---
 # Duplicate note (copy B)

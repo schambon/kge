@@ -1,5 +1,5 @@
 ---
-id: bob
+id: person:bob
 type: person
 ---
 # Bob

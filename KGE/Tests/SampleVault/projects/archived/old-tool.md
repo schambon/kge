@@ -1,5 +1,5 @@
 ---
-id: old-tool
+id: project:old-tool
 type: project
 ---
 # old-tool (archived)
