@@ -25,7 +25,7 @@ Attendees: [[person:alice]], [[person:bob]]. Project: [[proj:kge]].
 ## Notes
 
 > We agreed the preprocessor hook's two jobs — id resolution and backlinks — should be
-> built into the app directly, per the original brief.
+> built into the app directly.
 
 A short snippet discussed on the call:
 

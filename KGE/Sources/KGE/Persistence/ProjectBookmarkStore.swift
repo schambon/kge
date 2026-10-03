@@ -2,7 +2,7 @@ import Foundation
 
 /// Persists a security-scoped bookmark to the last-opened project root, so the app can
 /// restore it on relaunch without re-prompting via `NSOpenPanel`. Strictly local
-/// (`UserDefaults`) — this is a convenience, not something the brief requires syncing
+/// (`UserDefaults`) — this is a convenience, not something that needs syncing
 /// anywhere.
 enum ProjectBookmarkStore {
     private static let defaultsKey = "KGELastProjectBookmark"

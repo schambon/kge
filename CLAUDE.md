@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Current state
 
-All ten build milestones from the implementation plan are done: indexing (`GraphIndex`, id/backlink index, FSEvents live updates), the wiki-link/HTML rendering pipeline, the WKWebView content pane with click-through navigation, the real sidebar tree, keyboard shortcuts (S/j/k/B/L/D, Cmd-O/F/S, history), find-in-page, quick-open, and dynamic views (builder, save/delete, sidebar + quick-open integration). 22 unit tests cover the indexer, renderer, navigation history, dynamic-view filtering/persistence, and a real FSEvents round-trip. Read `KGE — Build Brief.md` before changing behavior described there — it remains authoritative over assumptions made here.
+All ten build milestones from the implementation plan are done: indexing (`GraphIndex`, id/backlink index, FSEvents live updates), the wiki-link/HTML rendering pipeline, the WKWebView content pane with click-through navigation, the real sidebar tree, keyboard shortcuts (S/j/k/B/L/D, Cmd-O/F/S, history), find-in-page, quick-open, and dynamic views (builder, save/delete, sidebar + quick-open integration). 22 unit tests cover the indexer, renderer, navigation history, dynamic-view filtering/persistence, and a real FSEvents round-trip. The original design brief has been removed from the repo; this file and the README now carry its decisions.
 
 Follow-up work not yet done: app icon/branding, onboarding/empty-state polish beyond the basic "no folder open" placeholder, and the deeper manual keyboard/GUI walkthrough noted in the plan (headless CI can't drive the actual WKWebView key handling or SwiftUI `List` lazy-loading behavior — those were verified via unit-level proxies; a human pass in Xcode is still worthwhile before shipping).
 
@@ -54,7 +54,7 @@ Explicitly out of scope: diff mode, git integration, and mdv's external preproce
 
 ## Architecture constraints that matter
 
-These are decisions already made in the brief; changing one has knock-on effects.
+These are decisions already made in the original design; changing one has knock-on effects.
 
 - **One HTML generation path.** Node pages, backlink panels, forward-link panels, and dynamic views all render as generated HTML into the same WKWebView. That's why WKWebView was chosen over NSTextView/AttributedString — don't split rendering across two surfaces.
 - **`[[type:id]]` is not CommonMark.** cmark-gfm will not parse wiki-links. They require an internal pre-pass over raw text *before* markdown parsing: scan for `[[type:id]]` (and the supported-but-unused `[[type:id|label]]`), resolve against the id index, substitute a real link. Type prefixes are shorthands (`proj` → `project`) resolved through a lookup table.
@@ -79,7 +79,9 @@ A saved filter: all nodes of type T under folder F (subtree, not direct children
 
 ## Keyboard map
 
-See the table at the end of the brief — it is the source of truth. Summary: `j`/`k` link navigation, `S` focus switch, `B`/`L` backlink/forward-link panes, `D` dynamic view, Cmd-O quick-open, Cmd-F or `/` find, Cmd-←/→ (or `<`/`>`) history, Cmd-Shift-F reveal in Finder.
+Summary (the menu bar and README list the full set): `j`/`k` link navigation, `S` focus switch, `B`/`L` backlink/forward-link panes, `D` dynamic view, Cmd-O quick-open, Cmd-F or `/` find, Cmd-←/→ (or `<`/`>`) history, Cmd-Shift-F reveal in Finder. Cmd-F / `/` searches the sidebar when it has focus. Back/forward also have a Finder-style title-bar control.
+
+UI chrome is deliberately plain: title bar, collapsible sidebar, content pane. Menu bar is Open Folder, New/Save/Delete Dynamic View, Copy, plus macOS defaults. In a dynamic view the title-bar save icon becomes a trash icon once the view is saved.
 
 ## Known open question
 

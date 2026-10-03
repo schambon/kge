@@ -1,6 +1,6 @@
 # An orphan note
 
-This file has no `id`/`type` frontmatter at all. Per the brief, it should still:
+This file has no `id`/`type` frontmatter at all. It should still:
 
 - appear in the sidebar's file tree, since that's filesystem-driven;
 - be directly openable;

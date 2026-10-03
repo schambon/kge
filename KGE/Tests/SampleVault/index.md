@@ -1,5 +1,5 @@
 Welcome to the KGE sample vault — a small fake knowledge graph for manually exercising
-every feature in the build brief. This is `index.md`, the vault's home page by
+every feature of KGE. This is `index.md`, the vault's home page by
 convention — opening this folder in KGE (Cmd-Shift-O) should land here automatically.
 It has no `id`/`type` frontmatter, so it's an entry point you can open directly but it
 can never be a `[[type:id]]` link *target* (open [[proj:mdv]] or [[proj:kge]] instead if

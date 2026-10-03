@@ -10,7 +10,7 @@ protocol WebKeyHandling: AnyObject {
 }
 
 /// A `WKWebView` subclass that gives the containing app a chance to intercept key
-/// events above WebKit's own handling, per the brief: WebKit reserves Tab and arrow
+/// events above WebKit's own handling: WebKit reserves Tab and arrow
 /// keys, but single letters (j, k, b, l, d, s) are safe to bind directly.
 final class KGEWebView: WKWebView {
     weak var keyHandler: WebKeyHandling?

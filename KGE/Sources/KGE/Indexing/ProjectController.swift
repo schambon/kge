@@ -124,8 +124,7 @@ final class ProjectController: ObservableObject {
     }
 
     /// All `.md` files under `root`, found via a recursive directory walk — the same
-    /// mechanism used to build the sidebar tree and the id index (no separate mechanism
-    /// per the brief).
+    /// mechanism used to build the sidebar tree and the id index (no separate mechanism).
     nonisolated static func discoverMarkdownFiles(under root: URL) -> [URL] {
         guard let enumerator = FileManager.default.enumerator(
             at: root,
