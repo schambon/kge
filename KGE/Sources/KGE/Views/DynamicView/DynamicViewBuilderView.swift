@@ -10,6 +10,7 @@ struct DynamicViewBuilderView: View {
 
     @Binding var criteria: [ViewCriterion]
     @Binding var folderRelativePath: String
+    @Binding var labelStyle: LinkLabelStyle
 
     let onClose: () -> Void
 
@@ -22,6 +23,12 @@ struct DynamicViewBuilderView: View {
                 Text("Project root").tag("")
                 ForEach(availableFolders.filter { !$0.isEmpty }, id: \.self) { folder in
                     Text(folder).tag(folder)
+                }
+            }
+
+            Picker("Display as", selection: $labelStyle) {
+                ForEach(LinkLabelStyle.allCases) { style in
+                    Text(style.displayName).tag(style)
                 }
             }
 

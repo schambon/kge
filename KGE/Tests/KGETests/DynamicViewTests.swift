@@ -110,5 +110,41 @@ struct DynamicViewCriteriaTests {
         let legacy = Data(#"{"id":"\#(UUID().uuidString)","name":"Old","typeCanonical":"project","folderRelativePath":""}"#.utf8)
         let decoded = try JSONDecoder().decode(DynamicView.self, from: legacy)
         #expect(decoded.criteria.map(\.value) == ["project"])
+        #expect(decoded.labelStyle == .fileName)
+    }
+}
+
+@Suite("DynamicView link labels")
+struct DynamicViewLabelTests {
+    @Test("labels follow labelStyle: file name, id, title with fallback")
+    func labelStyles() async throws {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: dir) }
+
+        let titled = dir.appendingPathComponent("with-title.md")
+        let untitled = dir.appendingPathComponent("no-title.md")
+        try "---\nid: t1\ntype: note\n---\n\nIntro\n\n## My Title ##\n".write(to: titled, atomically: true, encoding: .utf8)
+        try "---\nid: t2\ntype: note\n---\n```\n# not a heading\n```\nBody".write(to: untitled, atomically: true, encoding: .utf8)
+
+        let index = GraphIndex()
+        for url in [titled, untitled] { await index.reindex(url: url, action: .addOrUpdate) }
+        let snapshot = await index.snapshot()
+
+        func labels(_ style: LinkLabelStyle) -> [URL: String] {
+            let view = DynamicView(name: "v", folderRelativePath: "", criteria: [ViewCriterion(key: "type", value: "note")], labelStyle: style)
+            return Dictionary(uniqueKeysWithValues: view.matchingNodes(root: dir, snapshot: snapshot).map { ($0.url, $0.label) })
+        }
+        #expect(labels(.fileName)[titled] == "with-title")
+        #expect(labels(.id)[titled] == "t1")
+        #expect(labels(.title)[titled] == "My Title")
+        #expect(labels(.title)[untitled] == "no-title")
+    }
+
+    @Test("labelStyle round-trips through Codable")
+    func codableRoundTrip() throws {
+        let view = DynamicView(name: "v", folderRelativePath: "", criteria: [], labelStyle: .title)
+        let decoded = try JSONDecoder().decode(DynamicView.self, from: JSONEncoder().encode(view))
+        #expect(decoded.labelStyle == .title)
     }
 }
