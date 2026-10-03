@@ -35,7 +35,7 @@ struct RootView: View {
     )
     @State private var currentBaseURL: URL?
     @State private var linksPopover: LinksPopoverKind?
-    @State private var history = NavigationHistory()
+    @State private var history = NavigationHistory<ContentKind>()
     @State private var isNavigatingHistory = false
     @State private var swipeOffset: CGFloat = 0
     @State private var isQuickOpenPresented = false
@@ -133,7 +133,7 @@ struct RootView: View {
             if isNavigatingHistory {
                 isNavigatingHistory = false
             } else {
-                history.push(newValue)
+                history.push(.node(newValue))
             }
         }
         .onChange(of: builderCriteria) { _, _ in renderTransientDynamicViewIfNeeded() }
@@ -318,15 +318,29 @@ struct RootView: View {
     }
 
     private func goBack() {
-        guard let url = history.goBack(), url != currentURL else { return }
-        isNavigatingHistory = true
-        currentURL = url
+        guard let entry = history.goBack() else { return }
+        apply(historyEntry: entry)
     }
 
     private func goForward() {
-        guard let url = history.goForward(), url != currentURL else { return }
-        isNavigatingHistory = true
-        currentURL = url
+        guard let entry = history.goForward() else { return }
+        apply(historyEntry: entry)
+    }
+
+    /// Shows an entry replayed from history without re-recording it.
+    private func apply(historyEntry entry: ContentKind) {
+        switch entry {
+        case .node(let url):
+            guard url != currentURL else { return }
+            isNavigatingHistory = true
+            currentURL = url
+        case .dynamicView(_, let criteria, let folder):
+            currentURL = nil
+            builderCriteria = criteria
+            builderFolder = folder
+            contentKind = entry
+            renderCurrentDynamicView()
+        }
     }
 
     /// Reveals the currently-open node in Finder, or the project root if no node is
@@ -362,18 +376,27 @@ struct RootView: View {
     /// Renders the builder's current selection immediately, with no separate "apply"
     /// step — every change to type or folder re-renders live.
     private func renderTransientDynamicViewIfNeeded() {
-        guard projectController.projectRoot != nil else { return }
+        guard projectController.projectRoot != nil, isDynamicViewBuilderPresented else { return }
         currentURL = nil
-        contentKind = .dynamicView(savedID: nil, criteria: builderCriteria, folderRelativePath: builderFolder)
+        let entry = ContentKind.dynamicView(savedID: nil, criteria: builderCriteria, folderRelativePath: builderFolder)
+        contentKind = entry
         renderCurrentDynamicView()
+        // The builder re-renders on every edit: keep a single transient history entry.
+        if case .dynamicView(nil, _, _)? = history.current {
+            history.replaceCurrent(entry)
+        } else {
+            history.push(entry)
+        }
     }
 
     private func openSavedDynamicView(_ view: DynamicView) {
         currentURL = nil
         builderCriteria = view.criteria
         builderFolder = view.folderRelativePath
-        contentKind = .dynamicView(savedID: view.id, criteria: view.criteria, folderRelativePath: view.folderRelativePath)
+        let entry = ContentKind.dynamicView(savedID: view.id, criteria: view.criteria, folderRelativePath: view.folderRelativePath)
+        contentKind = entry
         renderCurrentDynamicView()
+        history.push(entry)
     }
 
     private func renderCurrentDynamicView() {
