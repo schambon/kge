@@ -89,6 +89,9 @@ enum HTMLTemplate {
     }
     .kge-header { margin-bottom: 1.5rem; }
     .kge-header h1 { margin: 0 0 0.15rem; font-size: 1.6rem; }
+    li > input[type=checkbox] { margin: 0 0.4rem 0 0; vertical-align: middle; }
+    li > input[type=checkbox] + p { display: inline; margin: 0; }
+    li:has(> input[type=checkbox]) { list-style: none; margin-left: -1.2rem; }
     .kge-slug { color: var(--muted); font-family: ui-monospace, monospace; font-size: 0.85rem; }
     dl.kge-meta { margin: 0.6rem 0 0; font-size: 0.85rem; color: var(--muted); display: grid; grid-template-columns: max-content 1fr; gap: 0.1rem 1rem; }
     dl.kge-meta dt { font-family: ui-monospace, monospace; }
