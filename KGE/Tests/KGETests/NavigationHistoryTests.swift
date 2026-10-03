@@ -10,7 +10,7 @@ struct NavigationHistoryTests {
 
     @Test("push/back/forward basic stack semantics")
     func pushBackForward() {
-        var history = NavigationHistory()
+        var history = NavigationHistory<URL>()
         history.push(a)
         history.push(b)
         history.push(c)
@@ -31,7 +31,7 @@ struct NavigationHistoryTests {
 
     @Test("pushing after going back discards the abandoned forward branch")
     func pushAfterBackDiscardsForward() {
-        var history = NavigationHistory()
+        var history = NavigationHistory<URL>()
         history.push(a)
         history.push(b)
         _ = history.goBack() // current = a, forward = [b]
@@ -44,8 +44,25 @@ struct NavigationHistoryTests {
 
     @Test("goBack/goForward on empty history return nil without crashing")
     func emptyHistoryIsSafe() {
-        var history = NavigationHistory()
+        var history = NavigationHistory<URL>()
         #expect(history.goBack() == nil)
         #expect(history.goForward() == nil)
+    }
+
+    @Test("non-URL entries such as dynamic views take part in back/forward")
+    func dynamicViewEntries() {
+        enum Entry: Equatable { case node(String), view(String) }
+        var history = NavigationHistory<Entry>()
+        history.push(.node("index"))
+        history.push(.view("my tasks"))
+        history.push(.node("first task"))
+
+        #expect(history.goBack() == .view("my tasks"))
+        #expect(history.goBack() == .node("index"))
+        #expect(history.goForward() == .view("my tasks"))
+
+        history.replaceCurrent(.view("edited"))
+        #expect(history.goBack() == .node("index"))
+        #expect(history.goForward() == .view("edited"))
     }
 }
