@@ -21,7 +21,7 @@ enum MarkdownRenderer {
             )
         }
 
-        let (_, body) = FrontmatterScanner.splitFrontmatter(raw)
+        let (yaml, body) = FrontmatterScanner.splitFrontmatter(raw)
         let substituted = WikiLinkResolver.resolve(body: body, snapshot: snapshot)
 
         let document = Document(parsing: substituted)
@@ -42,6 +42,7 @@ enum MarkdownRenderer {
         return HTMLTemplate.renderPage(
             title: file.displayLabel,
             slug: slug,
+            metadataHTML: MetadataRenderer.render(yaml: yaml),
             bodyHTML: bodyHTML,
             forwardLinksHTML: forwardLinksHTML,
             backlinksHTML: backlinksHTML

@@ -20,7 +20,9 @@
 		2C614E5FDBEC8B5034515E4B /* DynamicViewStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 351C2863ABA99A6502CD96E6 /* DynamicViewStore.swift */; };
 		2CF01E17BBBE0A44318C60C2 /* IndexFileURLTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAC4CBC89BD60CE9A679B768 /* IndexFileURLTests.swift */; };
 		32B95DA1950708C677A06426 /* DynamicViewRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A827A3659AC8B456D4F4D1D8 /* DynamicViewRenderer.swift */; };
+		33415CAE781EA6126D227670 /* MetadataRendererTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76564911CEBCBBE50F801329 /* MetadataRendererTests.swift */; };
 		33C0DA1D991306A04DD0AF6E /* KGEWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4384093AC4F0A518FE5D5A44 /* KGEWebView.swift */; };
+		45357E4F04ED61971715AE10 /* MetadataRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA6BC47D7BEBA601C84F245B /* MetadataRenderer.swift */; };
 		46EC9C270B807CEBB9A851FC /* WikiLinkScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F364582A50A02A524454B6C /* WikiLinkScanner.swift */; };
 		48C52B61673205BDA272F314 /* NodeGraphQueries.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECE90247061D308C6FD85501 /* NodeGraphQueries.swift */; };
 		4E9FB19150ED6BB57D533DEA /* FileWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA9927C84EB89A6454D2359A /* FileWatcher.swift */; };
@@ -90,6 +92,7 @@
 		585A96A91E21B6DEB4145D9C /* MarkdownRendererTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownRendererTests.swift; sourceTree = "<group>"; };
 		5D51063412C5961946D3F906 /* HTMLTemplate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTMLTemplate.swift; sourceTree = "<group>"; };
 		6CBD77B7D312527933647312 /* KGETests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KGETests.swift; sourceTree = "<group>"; };
+		76564911CEBCBBE50F801329 /* MetadataRendererTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetadataRendererTests.swift; sourceTree = "<group>"; };
 		8175CB3D09D912B17B3633D0 /* WikiLinkResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WikiLinkResolver.swift; sourceTree = "<group>"; };
 		84AF7E8231180503F1C79884 /* NavigationHistory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationHistory.swift; sourceTree = "<group>"; };
 		9008413F2761A0F87FFD0762 /* DynamicViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicViewTests.swift; sourceTree = "<group>"; };
@@ -105,6 +108,7 @@
 		C08987D64E3E8D51F6C5E101 /* TypeShorthand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypeShorthand.swift; sourceTree = "<group>"; };
 		C445EA356904905E1F4852D8 /* SidebarItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarItem.swift; sourceTree = "<group>"; };
 		D2E5DB80DBC525803BB5E0DE /* WikiLinkResolverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WikiLinkResolverTests.swift; sourceTree = "<group>"; };
+		DA6BC47D7BEBA601C84F245B /* MetadataRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetadataRenderer.swift; sourceTree = "<group>"; };
 		E10C73FBA84301E337D1BB8A /* FrontmatterScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrontmatterScanner.swift; sourceTree = "<group>"; };
 		E7A104F672EED4FAFF1D375F /* DynamicView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicView.swift; sourceTree = "<group>"; };
 		ECE90247061D308C6FD85501 /* NodeGraphQueries.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeGraphQueries.swift; sourceTree = "<group>"; };
@@ -210,6 +214,7 @@
 				94DD011D1EF505383E0B8593 /* HTMLEscaping.swift */,
 				5D51063412C5961946D3F906 /* HTMLTemplate.swift */,
 				38AA31A349EA23883968B481 /* MarkdownRenderer.swift */,
+				DA6BC47D7BEBA601C84F245B /* MetadataRenderer.swift */,
 				1BE374CCFD8EF180F539C251 /* NodeListRenderer.swift */,
 				8175CB3D09D912B17B3633D0 /* WikiLinkResolver.swift */,
 			);
@@ -282,6 +287,7 @@
 				6CBD77B7D312527933647312 /* KGETests.swift */,
 				A3032F4870712D3C39091CF0 /* MarkdownRendererSectionsTests.swift */,
 				585A96A91E21B6DEB4145D9C /* MarkdownRendererTests.swift */,
+				76564911CEBCBBE50F801329 /* MetadataRendererTests.swift */,
 				24270D32B7E52B5415CF037B /* NavigationHistoryTests.swift */,
 				A67C58CBF19E2AE727A3379A /* ProjectControllerReindexTests.swift */,
 				25D0CB0453188E7EC3214C11 /* SampleVaultTests.swift */,
@@ -412,6 +418,7 @@
 				4F1322FDD403CEDAC85D1346 /* LinksPopoverView.swift in Sources */,
 				8EE040F5960D32C24AE0880C /* MarkdownFile.swift in Sources */,
 				0B689AFF1BD1097360B82CD8 /* MarkdownRenderer.swift in Sources */,
+				45357E4F04ED61971715AE10 /* MetadataRenderer.swift in Sources */,
 				553E570D012C47B1D5CE5473 /* NavigationHistory.swift in Sources */,
 				48C52B61673205BDA272F314 /* NodeGraphQueries.swift in Sources */,
 				9B62041334941CB2F0A5FDC3 /* NodeListRenderer.swift in Sources */,
@@ -439,6 +446,7 @@
 				A72916A66C3582AA3D6EB662 /* KGETests.swift in Sources */,
 				5F4E6919725FA2ADE8E5383B /* MarkdownRendererSectionsTests.swift in Sources */,
 				C5B726D588DAE5F29B03EA94 /* MarkdownRendererTests.swift in Sources */,
+				33415CAE781EA6126D227670 /* MetadataRendererTests.swift in Sources */,
 				9EF6B7BCBB6818633A9FF8D2 /* NavigationHistoryTests.swift in Sources */,
 				76E643745F08FC2401B8A45F /* ProjectControllerReindexTests.swift in Sources */,
 				8D39CC7070CF17E53353E56D /* SampleVaultTests.swift in Sources */,
