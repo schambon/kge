@@ -33,6 +33,59 @@ struct ViewCriterion: Identifiable, Codable, Hashable, Sendable {
     }
 }
 
+/// How each node link in a dynamic view is labeled.
+enum LinkLabelStyle: String, Codable, CaseIterable, Identifiable, Sendable {
+    case fileName, id, title
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .fileName: "File name"
+        case .id: "ID"
+        case .title: "Title"
+        }
+    }
+
+    /// The first Markdown heading in `text` (frontmatter and fenced code skipped), if any.
+    static func firstHeading(in text: String) -> String? {
+        var lines = text.components(separatedBy: "\n")
+        if lines.first?.trimmingCharacters(in: .whitespaces) == "---",
+           let end = lines.dropFirst().firstIndex(where: { $0.trimmingCharacters(in: .whitespaces) == "---" }) {
+            lines = Array(lines[(end + 1)...])
+        }
+        var inFence = false
+        for line in lines {
+            let t = line.trimmingCharacters(in: .whitespaces)
+            if t.hasPrefix("```") || t.hasPrefix("~~~") { inFence.toggle(); continue }
+            guard !inFence, t.hasPrefix("#") else { continue }
+            let hashes = t.prefix { $0 == "#" }
+            guard hashes.count <= 6 else { continue }
+            let rest = t.dropFirst(hashes.count)
+            guard rest.first == " " || rest.first == "\t" else { continue }
+            var title = rest.trimmingCharacters(in: .whitespaces)
+            while title.hasSuffix("#") { title.removeLast() }
+            title = title.trimmingCharacters(in: .whitespaces)
+            if !title.isEmpty { return title }
+        }
+        return nil
+    }
+
+    func label(for url: URL, record: IndexSnapshot.FileRecord) -> String {
+        let fileName = IndexSnapshot.displayLabel(for: url)
+        switch self {
+        case .fileName:
+            return fileName
+        case .id:
+            if let id = record.frontmatter?.id, !id.isEmpty { return id }
+            return fileName
+        case .title:
+            guard let text = try? String(contentsOf: url, encoding: .utf8) else { return fileName }
+            return Self.firstHeading(in: text) ?? fileName
+        }
+    }
+}
+
 /// A saved filter: every node under `folderRelativePath` (subtree, not just direct
 /// children — `""` means the whole project root) satisfying all `criteria`. Persisted
 /// strictly locally, keyed to the project root; never synced.
@@ -41,8 +94,10 @@ struct DynamicView: Identifiable, Codable, Sendable {
     var name: String
     var folderRelativePath: String
     var criteria: [ViewCriterion]
+    var labelStyle: LinkLabelStyle
 
-    init(id: UUID = UUID(), name: String, folderRelativePath: String, criteria: [ViewCriterion]) {
+    init(id: UUID = UUID(), name: String, folderRelativePath: String, criteria: [ViewCriterion], labelStyle: LinkLabelStyle = .fileName) {
+        self.labelStyle = labelStyle
         self.id = id
         self.name = name
         self.folderRelativePath = folderRelativePath
@@ -50,7 +105,7 @@ struct DynamicView: Identifiable, Codable, Sendable {
     }
 
     private enum CodingKeys: String, CodingKey {
-        case id, name, folderRelativePath, criteria, typeCanonical
+        case id, name, folderRelativePath, criteria, typeCanonical, labelStyle
     }
 
     // Views saved before the query builder stored a single `typeCanonical`; fold it into a `type` criterion.
@@ -59,6 +114,7 @@ struct DynamicView: Identifiable, Codable, Sendable {
         id = try c.decode(UUID.self, forKey: .id)
         name = try c.decode(String.self, forKey: .name)
         folderRelativePath = try c.decode(String.self, forKey: .folderRelativePath)
+        labelStyle = (try? c.decodeIfPresent(LinkLabelStyle.self, forKey: .labelStyle)) ?? .fileName
         if let criteria = try c.decodeIfPresent([ViewCriterion].self, forKey: .criteria) {
             self.criteria = criteria
         } else if let legacy = try c.decodeIfPresent(String.self, forKey: .typeCanonical) {
@@ -74,6 +130,7 @@ struct DynamicView: Identifiable, Codable, Sendable {
         try c.encode(name, forKey: .name)
         try c.encode(folderRelativePath, forKey: .folderRelativePath)
         try c.encode(criteria, forKey: .criteria)
+        try c.encode(labelStyle, forKey: .labelStyle)
     }
 
     /// Recomputes the filter fresh against `snapshot` — a saved view only ever persists
@@ -93,7 +150,7 @@ struct DynamicView: Identifiable, Codable, Sendable {
             }
             .map { url, record in
                 let type = record.frontmatter?.type.map(TypeShorthand.expand) ?? ""
-                return DisplayNode(url: url, label: IndexSnapshot.displayLabel(for: url), subtitle: type)
+                return DisplayNode(url: url, label: labelStyle.label(for: url, record: record), subtitle: type)
             }
             .sorted { $0.label.localizedStandardCompare($1.label) == .orderedAscending }
     }
