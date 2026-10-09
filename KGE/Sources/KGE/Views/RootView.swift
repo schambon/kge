@@ -55,6 +55,7 @@ struct RootView: View {
     @State private var isSaveNamePromptPresented = false
     @State private var saveNameDraft = ""
 
+    private let scrollPreserver = ScrollPreserver()
     private let keyEventMonitor = KeyEventMonitor()
 
     private enum LinksPopoverKind: Identifiable {
@@ -87,7 +88,8 @@ struct RootView: View {
                     onOpenForwardLinks: { linksPopover = .forwardLinks },
                     onWebViewCreated: { webView in findController.webView = webView },
                     sourceToggleTitle: sourceToggleTitle,
-                    onToggleSource: { toggleSource() }
+                    onToggleSource: { toggleSource() },
+                    scrollPreserver: scrollPreserver
                 )
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .offset(x: swipeOffset)
@@ -372,6 +374,7 @@ struct RootView: View {
 
     /// Re-renders whatever the content pane is showing against the latest snapshot.
     private func refreshCurrentContent() {
+        scrollPreserver.pending = true
         switch contentKind {
         case .node(let url): renderNode(url: url)
         case .dynamicView: renderCurrentDynamicView()

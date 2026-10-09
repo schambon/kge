@@ -37,6 +37,14 @@ final class KGEWebView: WKWebView {
     }
 }
 
+/// One-shot flag shared between `RootView` and the web view: set just before an
+/// in-place refresh of the same page (file changed on disk, Cmd-R) so the next load
+/// keeps the reader's scroll position instead of jumping back to the top. A reference
+/// type so flipping it doesn't invalidate any SwiftUI view.
+final class ScrollPreserver {
+    var pending = false
+}
+
 /// SwiftUI wrapper around `KGEWebView`. Loads `html` (with `baseURL` so relative
 /// resources such as `<img src="...">` in notes resolve against the source file's
 /// directory) whenever it changes.
@@ -50,6 +58,7 @@ struct KGEWebViewRepresentable: NSViewRepresentable {
     /// Nil when the current page isn't a file (e.g. a dynamic view): no menu item.
     var sourceToggleTitle: String?
     var onToggleSource: () -> Void = {}
+    var scrollPreserver: ScrollPreserver?
 
     func makeNSView(context: Context) -> KGEWebView {
         let webView = KGEWebView()
@@ -67,9 +76,19 @@ struct KGEWebViewRepresentable: NSViewRepresentable {
         context.coordinator.onOpenNode = onOpenNode
         context.coordinator.onOpenBacklinks = onOpenBacklinks
         context.coordinator.onOpenForwardLinks = onOpenForwardLinks
+        let preserve = scrollPreserver?.pending == true
+        scrollPreserver?.pending = false
         if context.coordinator.lastLoadedHTML != html {
             context.coordinator.lastLoadedHTML = html
-            webView.loadHTMLString(html, baseURL: baseURL)
+            if preserve {
+                webView.evaluateJavaScript("window.scrollY") { [weak webView] result, _ in
+                    context.coordinator.restoreScrollY = (result as? NSNumber)?.doubleValue
+                    webView?.loadHTMLString(html, baseURL: baseURL)
+                }
+            } else {
+                context.coordinator.restoreScrollY = nil
+                webView.loadHTMLString(html, baseURL: baseURL)
+            }
         }
     }
 
@@ -84,6 +103,14 @@ struct KGEWebViewRepresentable: NSViewRepresentable {
         var onOpenBacklinks: () -> Void = {}
         var onOpenForwardLinks: () -> Void = {}
         var lastLoadedHTML: String?
+        /// Scroll offset to reapply once the in-flight reload finishes; nil for normal navigation.
+        var restoreScrollY: Double?
+
+        func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+            guard let y = restoreScrollY else { return }
+            restoreScrollY = nil
+            webView.evaluateJavaScript("window.scrollTo(0, \(y));")
+        }
 
         func webView(
             _ webView: WKWebView,
