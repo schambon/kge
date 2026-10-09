@@ -15,6 +15,10 @@ final class ProjectController: ObservableObject {
     /// `FileTreeNode`).
     @Published private(set) var treeGeneration = 0
 
+    /// Bumped whenever the published `snapshot` changes after the initial build (FSEvents
+    /// batch or full reindex); `RootView` re-renders the open page/dynamic view on change.
+    @Published private(set) var contentGeneration = 0
+
     let graphIndex = GraphIndex()
     private var fileWatcher: FileWatcher?
 
@@ -78,6 +82,8 @@ final class ProjectController: ObservableObject {
         }
         snapshot = await graphIndex.snapshot()
         rootFileTreeNode = FileTreeNode(url: root, isDirectory: true)
+        treeGeneration += 1
+        contentGeneration += 1
     }
 
     /// Starts the FSEvents watcher for `root`. Every path in one callback batch is
@@ -104,8 +110,11 @@ final class ProjectController: ObservableObject {
         }
         if !batch.markdownFiles.isEmpty {
             snapshot = await graphIndex.snapshot()
+            contentGeneration += 1
         }
-        if !batch.directoryPaths.isEmpty, let root = projectRoot {
+        // File-level events matter too: a created/deleted/renamed `.md` changes the tree
+        // even when FSEvents doesn't also report its parent directory.
+        if let root = projectRoot {
             rootFileTreeNode = FileTreeNode(url: root, isDirectory: true)
             treeGeneration += 1
         }

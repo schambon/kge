@@ -29,6 +29,9 @@ extension Notification.Name {
     /// changes missed while the app wasn't watching.
     static let kgeReindexRequested = Notification.Name("kgeReindexRequested")
 
+    /// Posted by Cmd-R: full reindex, then re-render the content pane and sidebar tree.
+    static let kgeReloadRequested = Notification.Name("kgeReloadRequested")
+
     /// Posted by Cmd-Shift-F: reveal the current node (or open folder) in Finder.
     static let kgeRevealInFinderRequested = Notification.Name("kgeRevealInFinderRequested")
 
@@ -92,6 +95,11 @@ struct KGEApp: App {
                     NotificationCenter.default.post(name: .kgeSaveOrDeleteDynamicViewRequested, object: nil)
                 }
                 .keyboardShortcut("s", modifiers: [.command])
+
+                Button("Reload") {
+                    NotificationCenter.default.post(name: .kgeReloadRequested, object: nil)
+                }
+                .keyboardShortcut("r", modifiers: [.command])
 
                 Button("Reindex") {
                     NotificationCenter.default.post(name: .kgeReindexRequested, object: nil)

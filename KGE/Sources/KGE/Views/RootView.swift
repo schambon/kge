@@ -178,6 +178,7 @@ struct RootView: View {
         .onReceive(NotificationCenter.default.publisher(for: .kgeReindexRequested)) { _ in
             Task { await projectController.fullReindex() }
         }
+        .background(reloadHooks)
         .onReceive(NotificationCenter.default.publisher(for: .kgeRevealInFinderRequested)) { _ in
             revealInFinder()
         }
@@ -356,6 +357,26 @@ struct RootView: View {
         guard let root = projectController.projectRoot,
               let indexURL = ProjectController.indexFileURL(in: root) else { return }
         currentURL = indexURL
+    }
+
+    /// Cmd-R and index-change handling, split out to keep `body` type-checkable.
+    private var reloadHooks: some View {
+        Color.clear
+            .onReceive(NotificationCenter.default.publisher(for: .kgeReloadRequested)) { _ in
+                Task { await projectController.fullReindex() }
+            }
+            .onChange(of: projectController.contentGeneration) { _, _ in
+                refreshCurrentContent()
+            }
+    }
+
+    /// Re-renders whatever the content pane is showing against the latest snapshot.
+    private func refreshCurrentContent() {
+        switch contentKind {
+        case .node(let url): renderNode(url: url)
+        case .dynamicView: renderCurrentDynamicView()
+        case nil: break
+        }
     }
 
     private func renderNode(url: URL) {
