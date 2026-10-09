@@ -60,6 +60,7 @@ Dynamic views are not nodes and can't be link targets. They are stored locally i
 | Cmd-Shift-O | Open folder |
 | Cmd-S | Save the current dynamic view |
 | Cmd-Shift-F | Reveal in Finder |
+| Cmd-Shift-J | Toggle sidebar auto-expand (turning it on reveals the current page in the tree) |
 
 ## Indexing
 

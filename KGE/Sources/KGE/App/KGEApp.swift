@@ -32,6 +32,10 @@ extension Notification.Name {
     /// Posted by Cmd-Shift-F: reveal the current node (or open folder) in Finder.
     static let kgeRevealInFinderRequested = Notification.Name("kgeRevealInFinderRequested")
 
+    /// Posted by Cmd-Shift-J and the toolbar toggle: flip sidebar auto-expand (turning it
+    /// on also reveals the current page in the tree).
+    static let kgeSidebarAutoExpandToggleRequested = Notification.Name("kgeSidebarAutoExpandToggleRequested")
+
     /// Posted by `?` (bare key) and the Help menu item: show the keyboard shortcut reference.
     static let kgeKeyboardHelpRequested = Notification.Name("kgeKeyboardHelpRequested")
 }
@@ -97,6 +101,11 @@ struct KGEApp: App {
                     NotificationCenter.default.post(name: .kgeRevealInFinderRequested, object: nil)
                 }
                 .keyboardShortcut("f", modifiers: [.command, .shift])
+
+                Button("Toggle Sidebar Auto-Expand") {
+                    NotificationCenter.default.post(name: .kgeSidebarAutoExpandToggleRequested, object: nil)
+                }
+                .keyboardShortcut("j", modifiers: [.command, .shift])
             }
         }
     }

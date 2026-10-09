@@ -30,6 +30,7 @@ struct KeyboardHelpView: View {
             Shortcut(keys: "⌘F or /", action: "Find (in the sidebar when it has focus)"),
             Shortcut(keys: "⇧⌘O", action: "Open folder"),
             Shortcut(keys: "⇧⌘F", action: "Reveal in Finder"),
+            Shortcut(keys: "⇧⌘J", action: "Toggle sidebar auto-expand (on: reveals current page in tree)"),
         ]),
         Section(title: "Dynamic views", shortcuts: [
             Shortcut(keys: "D", action: "New dynamic view"),

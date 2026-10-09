@@ -42,6 +42,8 @@ struct RootView: View {
     @State private var isQuickOpenPresented = false
     @State private var isKeyboardHelpPresented = false
     @State private var isViewingSource = false
+    @AppStorage("sidebarAutoExpand") private var autoExpandSidebar = true
+    @State private var expandedSidebarIDs: Set<String> = []
 
     @State private var isDynamicViewBuilderPresented = false
     @State private var builderCriteria: [ViewCriterion] = []
@@ -138,6 +140,7 @@ struct RootView: View {
             guard let newValue else { return }
             contentKind = .node(newValue)
             renderNode(url: newValue)
+            if autoExpandSidebar { revealInSidebar(newValue) }
             if isNavigatingHistory {
                 isNavigatingHistory = false
             } else {
@@ -177,6 +180,9 @@ struct RootView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: .kgeRevealInFinderRequested)) { _ in
             revealInFinder()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .kgeSidebarAutoExpandToggleRequested)) { _ in
+            toggleAutoExpandSidebar()
         }
         .task {
             await projectController.restoreLastProjectIfAvailable()
@@ -255,8 +261,21 @@ struct RootView: View {
             SidebarView(
                 rootItems: [.file(rootNode), .dynamicViewsRoot(views: dynamicViewStore.views)],
                 selection: $currentURL,
+                expandedIDs: $expandedSidebarIDs,
                 onSelectDynamicView: { view in openSavedDynamicView(view) }
             )
+            .toolbar {
+                ToolbarItem {
+                    Button { toggleAutoExpandSidebar() } label: {
+                        Label("Auto-expand", systemImage: "arrow.left.arrow.right")
+                            .symbolVariant(autoExpandSidebar ? .fill : .none)
+                    }
+                    .foregroundStyle(autoExpandSidebar ? Color.accentColor : Color.secondary)
+                    .help(autoExpandSidebar
+                        ? "Auto-expand sidebar to current item: on (⇧⌘J)"
+                        : "Auto-expand sidebar to current item: off (⇧⌘J)")
+                }
+            }
         } else {
             VStack(spacing: 8) {
                 Text("No folder open.")
@@ -383,6 +402,27 @@ struct RootView: View {
             contentKind = entry
             renderCurrentDynamicView()
         }
+    }
+
+    /// Expands every ancestor folder of `url` in the sidebar tree (never collapsing
+    /// anything), so the selected row becomes visible.
+    private func revealInSidebar(_ url: URL) {
+        guard let root = projectController.projectRoot?.standardizedFileURL else { return }
+        var dir = url.deletingLastPathComponent()
+        var ids: Set<String> = []
+        while dir.standardizedFileURL.path.hasPrefix(root.path) {
+            ids.insert("file:\(dir.path)")
+            if dir.standardizedFileURL.path == root.path { break }
+            dir = dir.deletingLastPathComponent()
+        }
+        expandedSidebarIDs.formUnion(ids)
+    }
+
+    /// Flips auto-expand; turning it on immediately reveals the current page, so the
+    /// shortcut doubles as "find this page in the tree" when auto-expand is off.
+    private func toggleAutoExpandSidebar() {
+        autoExpandSidebar.toggle()
+        if autoExpandSidebar, let url = currentURL { revealInSidebar(url) }
     }
 
     /// Reveals the currently-open node in Finder, or the project root if no node is
